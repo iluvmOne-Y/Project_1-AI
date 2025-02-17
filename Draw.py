@@ -70,7 +70,7 @@ def drawLevel(matrix_to_draw):
 	target = pygame.image.load(myEnvironment.getPath() + '/themes/' +  '/images/target.png').convert()
 	player = pygame.image.load(myEnvironment.getPath() + '/themes/' +  '/images/player.png').convert()
 
-	images = {'#': wall, ' ': space, '$': box, '.': target, '@': player, '*': box_on_target}
+	images = {'#': wall, ' ': space, '$': box, '.': target, '@': player, '*': box_on_target, '+': player}
 	
 	# Get image size. Images are always squares so it doesn't care if you get width or height
 	box_size = wall.get_width()
