@@ -14,11 +14,27 @@ def solveLevel(level: Level.Level, algorithm, UI):
     @algorithm: The algorithm to solve the level with.
     @UI: The UI object to draw the level and the success screen.
     """
+    #condition to pause animation
+    stop_animation = False
     # Solve the level
     solution = algorithm(level)
     # If a solution is found, move the player according to the solution
     if solution:
         for move in solution:
+            
+
+            # PAUSE ANIMATION WHEN ENTER SPACEBAR
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE:
+                        stop_animation = True
+            while stop_animation:
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_SPACE:
+                            stop_animation = False
+
+
             movePlayer(move, level)
             UI.drawLevel(level.getMatrix())
             pygame.time.wait(100)
