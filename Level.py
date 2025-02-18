@@ -10,7 +10,7 @@ class Level:
     matrixHistories = []
     """The storage to older versions of the level matrix."""
 
-    playerPosition = [0, 0]
+    playerPosition = []
     """The position of the player."""
 
     boxes = []
@@ -24,9 +24,6 @@ class Level:
         ### Parameters
         @levelNumber: The level number to be loaded.
         """
-        del self.matrix[:]
-        del self.matrixHistories[:]
-
         # Create level
         with open(
             os.path.dirname(os.path.abspath(__file__))
@@ -57,6 +54,14 @@ class Level:
                 elif self.matrix[i][k] == "*":
                     self.boxes.append([k, i])
                     self.switches.append([k, i])
+
+    def __del__(self):
+        """Clear the level's data when the object is deleted."""
+        self.matrix.clear()
+        self.matrixHistories.clear()
+        self.playerPosition.clear()
+        self.boxes.clear()
+        self.switches.clear()
 
     def getMatrix(self):
         """Return the current matrix of the level."""
