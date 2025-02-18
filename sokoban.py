@@ -15,13 +15,20 @@ moves = {
     pygame.K_DOWN: "D",
 }
 
+# Initialize the level variable
+level = None
+
 while True:
     # Set the start Level
     selectedLevel = UI.drawLevelSelectionMenu()
     selectedAlgorithm = UI.drawAlgorithmSelectionMenu()
 
+    # Delete the previous level if it exists
+    if level:
+        del level
     # Initialize Level
     level = UI.initLevel(selectedLevel, selectedAlgorithm)
+    print("\n", level.getPlayerPosition(), level.getBoxes(), level.getSwitches(), "\n")
 
     levelFinished = False
 
