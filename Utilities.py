@@ -129,7 +129,7 @@ def isDeadlock(matrix: list, boxPosition: list, move: list) -> bool:
     # Check for double box deadlock
     aroundPositions = {
         matrix[y + move[1]][x + move[0]]: (
-            matrix[y + move[0]][x + move[1]] == "#"
+            matrix[y + move[0]][x + move[1]] in ["#", "$", "*"]
             and (
                 matrix[y - move[0]][x - move[1]] == "#"
                 or matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
