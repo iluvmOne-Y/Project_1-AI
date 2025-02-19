@@ -5,6 +5,19 @@ import pygame as pygame
 import Level as Level
 import GameUI as GameUI
 
+def stop_function():
+    stop_animation = False
+
+    for event in pygame.event.get():
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE:
+                stop_animation = True
+    while stop_animation:
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    stop_animation = False
+
 
 def solveLevel(level: Level.Level, algorithm, UI):
     """Solve the given level using the given algorithm.
@@ -15,24 +28,25 @@ def solveLevel(level: Level.Level, algorithm, UI):
     @UI: The UI object to draw the level and the success screen.
     """
     #condition to pause animation
-    stop_animation = False
+    # stop_animation = False
+    
     # Solve the level
     solution = algorithm(level)
     # If a solution is found, move the player according to the solution
     if solution:
         for move in solution:
             
-
+            stop_function()
             # PAUSE ANIMATION WHEN ENTER SPACEBAR
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        stop_animation = True
-            while stop_animation:
-                for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE:
-                            stop_animation = False
+            # for event in pygame.event.get():
+            #     if event.type == pygame.KEYDOWN:
+            #         if event.key == pygame.K_SPACE:
+            #             stop_animation = True
+            # while stop_animation:
+            #     for event in pygame.event.get():
+            #         if event.type == pygame.KEYDOWN:
+            #             if event.key == pygame.K_SPACE:
+            #                 stop_animation = False
 
 
             movePlayer(move, level)
@@ -104,21 +118,37 @@ def movePlayer(direction: tuple, level: Level.Level):
         matrix[playerY + moveY][playerX + moveX] == "$"
         or matrix[playerY + moveY][playerX + moveX] == "*"
     ):
-        # set the position that the box will be pushed to "*" if it is on a switch else "$"
-        matrix[playerY + 2 * moveY][playerX + 2 * moveX] = (
-            "*" if matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "." else "$"
-        )
+        # # set the position that the box will be pushed to "*" if it is on a switch else "$"
+        # matrix[playerY + 2 * moveY][playerX + 2 * moveX] = (
+        #     "*" if matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "." else "$"
+        # )
 
-        # set the move position to + if Ares will step on a switch else @
-        matrix[playerY + moveY][playerX + moveX] = (
-            "+" if matrix[playerY + moveY][playerX + moveX] == "*" else "@"
-        )
+        # # set the move position to + if Ares will step on a switch else @
+        # matrix[playerY + moveY][playerX + moveX] = (
+        #     "+" if matrix[playerY + moveY][playerX + moveX] == "*" else "@"
+        # )
 
-        # set the player previous position to "." Ares was stepping on a switch else " "
-        matrix[playerY][playerX] = "." if matrix[playerY][playerX] == "+" else " "
+        # # set the player previous position to "." Ares was stepping on a switch else " "
+        # matrix[playerY][playerX] = "." if matrix[playerY][playerX] == "+" else " "
 
-        # update player's position
-        level.playerPosition = [playerX + moveX, playerY + moveY]
+        # # update player's position
+        # level.playerPosition = [playerX + moveX, playerY + moveY]
+        if(matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "*"
+           or matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "#"
+           or matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "$"):
+            pass
+        else:
+            if(matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "."):
+                matrix[playerY + 2 * moveY][playerX + 2 * moveX] = "*"
+            else:
+                matrix[playerY + 2 * moveY][playerX + 2 * moveX] = "$"
+            
+            matrix[playerY + moveY][playerX + moveX] = ("+" if matrix[playerY + moveY][playerX + moveX] == "*"
+                                                        else "@")
+            matrix[playerY][playerX] = (" " if matrix[playerY][playerX] == "@"
+                                        else ".")
+            level.playerPosition = [playerX + moveX, playerY + moveY]
+
 
     return matrix
 
