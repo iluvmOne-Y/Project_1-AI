@@ -1,14 +1,20 @@
 from collections import deque
 from copy import deepcopy
 from Utilities import isDeadlock
+import time
 
-
-def BFS(level):
+def BFS(level,ui=None):
     """Solve the level using the Breadth First Search algorithm.
 
     ### Parameters
     @level: The level to solve.
     """
+    #Start measuring time
+    start_time = time.time()
+
+    #Initialise node counter
+    expanded_nodes = 0
+
     # Get the initial state of the level
     initialMatrix = level.getMatrix()
     initialPosition = level.getPlayerPosition()
@@ -82,8 +88,27 @@ def BFS(level):
     # Iterate through the queue
     while queue:
         currentMatrix, currentPosition, currentPath = queue.popleft()
+        expanded_nodes += 1
+        #Update GUI stats every 10 nodes 
+        if ui and expanded_nodes % 10 ==0:
+            current_time = time.time() - start_time
+            stats = {
+                'path': ''.join(currentPath),
+                'time': f"{current_time:.2f}s",
+                'nodes': str(expanded_nodes)
+            }
+            ui.drawStats(stats)
         # Check if all switches are activated
         if all(currentMatrix[y][x] == "*" for x, y in level.getSwitches()):
+            end_time = time.time()
+            if ui:
+                stats = {
+                    'path': ''.join(currentPath),
+                    'time': f"{end_time - start_time:.2f}s",
+                    'nodes': str(expanded_nodes),
+                    'status': 'Solved'
+                }
+                ui.drawStats(stats)
             return currentPath
         # Iterate through the directions
         for direction in directions:

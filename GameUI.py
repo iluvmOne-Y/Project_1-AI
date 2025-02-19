@@ -244,7 +244,30 @@ class UI:
                 elif event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-
+    def drawStats(self, stats):
+        """Draw the algorithm statistics on the screen.
+    
+        ### Parameters
+        @stats: Dictionary containing path, time and nodes statistics
+        """
+        # Clear the stats area
+        pygame.draw.rect(self.screenSurface, (0, 0, 0), 
+                    (self.screenSize[0]-400, 400, 400, 200))
+    
+        # Draw statistics
+        y_pos = 400
+        for key, value in stats.items():
+            if key == 'path':
+                path_chunks = [value[i:i+20] for i in range(0, len(value), 20)]
+                self.drawText(f"Path", (self.screenSize[0]-150, y_pos))
+                y_pos += 20
+                for chunk in path_chunks:
+                    self.drawText(chunk, (self.screenSize[0]-150, y_pos),size=20)
+                    y_pos += 20
+            else:
+                self.drawText(f"{key}: {value}", (self.screenSize[0]-150, y_pos))
+                y_pos += 40
+        pygame.display.update()
     def initLevel(self, levelNumber: int, algorithm) -> Level.Level:
         """Initialize the level and draw it on the screen.
 

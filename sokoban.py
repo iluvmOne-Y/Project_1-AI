@@ -41,7 +41,8 @@ while True:
                 elif event.key == pygame.K_r:
                     UI.initLevel(selectedLevel, selectedAlgorithm)
                 elif event.key == pygame.K_s:
-                    Utilities.solveLevel(level, selectedAlgorithm, UI)
+                    Utilities.solveLevel(level, lambda l: selectedAlgorithm(l,UI), UI)
+                    
                     levelFinished = True
                 elif event.key == pygame.K_m:
                     break

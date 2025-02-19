@@ -52,11 +52,24 @@ def solveLevel(level: Level.Level, algorithm, UI):
             movePlayer(move, level)
             UI.drawLevel(level.getMatrix())
             pygame.time.wait(100)
+
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    sys.exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        pygame.quit()
+                        sys.exit()
+                    elif event.key == pygame.K_m:  # Option to return to menu
+                        waiting = False
         # Draw the success screen when the level is completed
-        UI.drawSuccessScreen()
+        #UI.drawSuccessScreen()
     # If no solution is found, print an announcement
-    else:
-        UI.drawSolutionNotFoundScreen()
+    #else:
+        #UI.drawSolutionNotFoundScreen()
 
 
 def movePlayer(direction: tuple, level: Level.Level):
