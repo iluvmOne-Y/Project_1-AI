@@ -208,4 +208,9 @@ def DFS(level):
 
     return None
 
-algorithms = {"Breadth First Search": BFS, "Depth First Search" : DFS}
+
+def A_Star(level):
+
+    return None
+
+algorithms = {"Breadth First Search": BFS, "Depth First Search" : DFS, "A-Star" : A_Star}

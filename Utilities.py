@@ -26,34 +26,20 @@ def solveLevel(level: Level.Level, algorithm, UI):
     @level: The level to solve.
     @algorithm: The algorithm to solve the level with.
     @UI: The UI object to draw the level and the success screen.
-    """
-    #condition to pause animation
-    # stop_animation = False
-    
+    """    
     # Solve the level
     solution = algorithm(level)
     # If a solution is found, move the player according to the solution
     if solution:
         for move in solution:
-            
             stop_function()
-            # PAUSE ANIMATION WHEN ENTER SPACEBAR
-            # for event in pygame.event.get():
-            #     if event.type == pygame.KEYDOWN:
-            #         if event.key == pygame.K_SPACE:
-            #             stop_animation = True
-            # while stop_animation:
-            #     for event in pygame.event.get():
-            #         if event.type == pygame.KEYDOWN:
-            #             if event.key == pygame.K_SPACE:
-            #                 stop_animation = False
-
-
             movePlayer(move, level)
             UI.drawLevel(level.getMatrix())
             pygame.time.wait(100)
+        
         # Draw the success screen when the level is completed
         UI.drawSuccessScreen()
+    
     # If no solution is found, print an announcement
     else:
         UI.drawSolutionNotFoundScreen()
@@ -172,23 +158,29 @@ def isDeadlock(matrix: list, boxPosition: list, move: list) -> bool:
     ):
         return True
 
-    # Check for double box deadlock
+    # Check for double box deadlock, dictionary of block value
     aroundPositions = {
-        matrix[y + move[1]][x + move[0]]: (
-            matrix[y + move[0]][x + move[1]] in ["#", "$", "*"]
-            and (
-                matrix[y - move[0]][x - move[1]] == "#"
-                or matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
-                or matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
-            )
+        matrix[y + move[1]][x + move[0]]: matrix[y - move[0]][x - move[1]] == "#"
+        and (
+            matrix[y + move[0] + move[1]][x + move[0] + move[1]] == "#"
+            or matrix[y - move[0] - move[1]][x + move[0] + move[1]] == "#"
         )
-        or (
-            matrix[y - move[0]][x - move[1]]
-            and (
-                matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
-                or matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
-            )
-        ),
+        #(
+        #     matrix[y + move[0]][x + move[1]] in ["#", "$", "*"]
+        #     and (
+        #         matrix[y - move[0]][x - move[1]] == "#"
+        #         or matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
+        #         or matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
+        #     )
+        # )
+        # or (
+        #     matrix[y - move[0]][x - move[1]]
+        #     and (
+        #         matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
+        #         or matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
+        #     )
+        #)
+        ,
         matrix[y + move[0]][x + move[1]]: matrix[y + move[1]][x + move[0]] == "#"
         and (
             matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
@@ -198,6 +190,11 @@ def isDeadlock(matrix: list, boxPosition: list, move: list) -> bool:
         and (
             matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
             or matrix[y - move[1] - move[0]][x - move[0] - move[1]] == "#"
+        ),
+        matrix[y + move[1]][x - move[0]]: matrix[y - move[0]][x - move[1]] == "#"
+        and (
+            matrix[y + move[0] + move[1]][x - move[0] - move[1]] == "#"
+            or matrix[y - move[0] - move[1]][x - move[0] - move[1]] == "#"
         ),
     }
 
