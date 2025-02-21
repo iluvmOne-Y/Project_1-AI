@@ -32,7 +32,7 @@ class UI:
         # Initialize font support
         pygame.font.init()
         # Hide the mouse cursor
-        pygame.mouse.set_visible(False)
+        pygame.mouse.set_visible(True)
         # Update the display
         pygame.display.update()
 
