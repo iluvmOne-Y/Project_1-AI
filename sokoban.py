@@ -20,8 +20,7 @@ level = None
 
 while True:
     # Set the start Level
-    selectedLevel = UI.drawLevelSelectionMenu()
-    selectedAlgorithm = UI.drawAlgorithmSelectionMenu()
+    selectedAlgorithm, selectedLevel = UI.drawSelectionMenu()
 
     # Delete the previous level if it exists
     if level:
