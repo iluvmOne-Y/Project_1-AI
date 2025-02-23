@@ -1,8 +1,10 @@
 import os as os
-import sys
+import sys as sys
+import copy
 import pygame as pygame
 import Level as Level
 import GameUI as GameUI
+
 
 def stop_function():
     stop_animation = False
@@ -26,15 +28,21 @@ def solveLevel(level: Level.Level, algorithm, UI):
     @algorithm: The algorithm to solve the level with.
     @UI: The UI object to draw the level and the success screen.
     """
-    #condition to pause animation
+    # condition to pause animation
     # stop_animation = False
-    
+
     # Solve the level
-    solution = algorithm(level)
+    solution = algorithm(level, UI)
     # If a solution is found, move the player according to the solution
     if solution:
-        for move in solution:
-            
+        moves = {
+            "L": (-1, 0),
+            "R": (1, 0),
+            "U": (0, -1),
+            "D": (0, 1),
+        }
+        for direction in solution:
+
             stop_function()
             # PAUSE ANIMATION WHEN ENTER SPACEBAR
             # for event in pygame.event.get():
@@ -47,8 +55,7 @@ def solveLevel(level: Level.Level, algorithm, UI):
             #             if event.key == pygame.K_SPACE:
             #                 stop_animation = False
 
-
-            movePlayer(move, level)
+            movePlayer(level, moves[direction], True)
             UI.drawLevel(level.getMatrix())
             pygame.time.wait(100)
 
@@ -65,112 +72,96 @@ def solveLevel(level: Level.Level, algorithm, UI):
                     elif event.key == pygame.K_m:  # Option to return to menu
                         waiting = False
         # Draw the success screen when the level is completed
-        #UI.drawSuccessScreen()
+        # UI.drawSuccessScreen()
     # If no solution is found, print an announcement
-    #else:
-        #UI.drawSolutionNotFoundScreen()
+    # else:
+    # UI.drawSolutionNotFoundScreen()
 
 
-def movePlayer(direction: tuple, level: Level.Level):
+def movePlayer(level: Level, move: tuple, mode: bool = False) -> int:
     """Move the player in the given direction.
 
     ### Parameters
-    @direction: The direction to move the player.
     @level: The level to move the player in.
+    @move: The direction to move the player.
+    @mode: The mode to run this function.
+
+    ### Returns
+    @int: The cost of the move.
     """
     matrix = level.getMatrix()
-    level.addToHistory(matrix)
+    # Create a new matrix to store the new state
+    newMatrix = [row[:] for row in matrix]
 
-    playerX, playerY = level.getPlayerPosition()
-
-    moves = {
-        "L": (-1, 0),
-        "R": (1, 0),
-        "U": (0, -1),
-        "D": (0, 1),
-    }
-
-    moveX = moves[direction][0]
-    moveY = moves[direction][1]
-
-    # Debug log for move direction
-    print(
-        "######### Moving",
-        (
-            "Left"
-            if direction == "L"
-            else "Right" if direction == "R" else "Up" if direction == "U" else "Down"
-        ),
-        "#########",
-    )
-
-    # if free space or a switch is in the move direction
-    if (
-        matrix[playerY + moveY][playerX + moveX] == " "
-        or matrix[playerY + moveY][playerX + moveX] == "."
-    ):
-        # set the move position to + if Ares will step on a switch else @
-        matrix[playerY + moveY][playerX + moveX] = (
-            "+" if matrix[playerY + moveY][playerX + moveX] == "." else "@"
+    currentPosition = level.getPlayerPosition()
+    newPosition = [
+        currentPosition[0] + move[0],
+        currentPosition[1] + move[1],
+    ]
+    # Check if the new position is a free space or a switch
+    if matrix[newPosition[1]][newPosition[0]] in [" ", "."]:
+        # Move the player
+        newMatrix[currentPosition[1]][currentPosition[0]] = (
+            " " if matrix[currentPosition[1]][currentPosition[0]] == "@" else "."
         )
+        newMatrix[newPosition[1]][newPosition[0]] = (
+            "@" if matrix[newPosition[1]][newPosition[0]] == " " else "+"
+        )
+        # Update the player's position
+        level.matrix = newMatrix
+        level.playerPosition = newPosition
 
-        # set the player previous position to "." Ares was stepping on a switch else " "
-        matrix[playerY][playerX] = "." if matrix[playerY][playerX] == "+" else " "
+        return 1
+    # Check if the new position is a box
+    elif matrix[newPosition[1]][newPosition[0]] in ["$", "*"]:
+        boxNewPosition = [newPosition[0] + move[0], newPosition[1] + move[1]]
+        # Check if the box can be moved
+        if matrix[boxNewPosition[1]][boxNewPosition[0]] in [
+            "#",
+            "$",
+            "*",
+        ]:
+            return 0
+        # Move the player and the box
+        newMatrix[currentPosition[1]][currentPosition[0]] = (
+            " " if matrix[currentPosition[1]][currentPosition[0]] == "@" else "."
+        )
+        newMatrix[newPosition[1]][newPosition[0]] = (
+            "@" if matrix[newPosition[1]][newPosition[0]] == "$" else "+"
+        )
+        newMatrix[boxNewPosition[1]][boxNewPosition[0]] = (
+            "$" if matrix[boxNewPosition[1]][boxNewPosition[0]] == " " else "*"
+        )
+        # Check if the new state is in a deadlock
+        if (
+            mode
+            and newMatrix[boxNewPosition[1]][boxNewPosition[0]] != "*"
+            and isDeadlock(newMatrix, boxNewPosition, move)
+        ):
+            return 0
+        # Update the matrix and the player's position
+        level.matrix = newMatrix
+        level.playerPosition = newPosition
+        # Update the cost
+        boxes = copy.deepcopy(level.boxes)
+        cost = boxes[tuple(newPosition)]
+        # Update the box's position
+        del boxes[tuple(newPosition)]
+        boxes[tuple(boxNewPosition)] = cost
+        level.boxes = boxes
 
-        # update player's and boxes' position
-        level.playerPosition = [playerX + moveX, playerY + moveY]
-        for box in level.boxes:
-            if box == [playerX + moveX, playerY + moveY]:
-                box[0] += moveX
-                box[1] += moveY
-                break
+        return cost
 
-    # if box is in the move direction, box might be on a switch
-    elif (
-        matrix[playerY + moveY][playerX + moveX] == "$"
-        or matrix[playerY + moveY][playerX + moveX] == "*"
-    ):
-        # # set the position that the box will be pushed to "*" if it is on a switch else "$"
-        # matrix[playerY + 2 * moveY][playerX + 2 * moveX] = (
-        #     "*" if matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "." else "$"
-        # )
-
-        # # set the move position to + if Ares will step on a switch else @
-        # matrix[playerY + moveY][playerX + moveX] = (
-        #     "+" if matrix[playerY + moveY][playerX + moveX] == "*" else "@"
-        # )
-
-        # # set the player previous position to "." Ares was stepping on a switch else " "
-        # matrix[playerY][playerX] = "." if matrix[playerY][playerX] == "+" else " "
-
-        # # update player's position
-        # level.playerPosition = [playerX + moveX, playerY + moveY]
-        if(matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "*"
-           or matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "#"
-           or matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "$"):
-            pass
-        else:
-            if(matrix[playerY + 2 * moveY][playerX + 2 * moveX] == "."):
-                matrix[playerY + 2 * moveY][playerX + 2 * moveX] = "*"
-            else:
-                matrix[playerY + 2 * moveY][playerX + 2 * moveX] = "$"
-            
-            matrix[playerY + moveY][playerX + moveX] = ("+" if matrix[playerY + moveY][playerX + moveX] == "*"
-                                                        else "@")
-            matrix[playerY][playerX] = (" " if matrix[playerY][playerX] == "@"
-                                        else ".")
-            level.playerPosition = [playerX + moveX, playerY + moveY]
+    return 0
 
 
-    return matrix
-
-
-def isDeadlock(matrix: list, boxPosition: list, move: list) -> bool:
+def isDeadlock(matrix: list, boxPosition: list, move: tuple) -> bool:
     """Check if the given box position is in a deadlock.
 
     ### Parameters
     @matrix: The matrix representing the level.
     @boxPosition: The position of the box to check.
+    @move: The move direction of the box.
 
     ### Returns
     @bool: True if the box is in a deadlock, False otherwise.
@@ -187,29 +178,34 @@ def isDeadlock(matrix: list, boxPosition: list, move: list) -> bool:
     # Check for double box deadlock
     aroundPositions = {
         matrix[y + move[1]][x + move[0]]: (
-            matrix[y + move[0]][x + move[1]] in ["#", "$", "*"]
-            and (
-                matrix[y - move[0]][x - move[1]] == "#"
-                or matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
-                or matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
+            (
+                matrix[y + move[0]][x + move[1]] == "#"
+                and (
+                    matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
+                    or matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
+                )
             )
-        )
-        or (
-            matrix[y - move[0]][x - move[1]]
+            or (
+                matrix[y - move[0]][x - move[1]] == "#"
+                and (
+                    matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
+                    or matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
+                )
+            )
+        ),
+        matrix[y + move[0]][x + move[1]]: (
+            matrix[y + move[1]][x + move[0]] == "#"
             and (
                 matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
-                or matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
+                or matrix[y - move[1] + move[0]][x - move[0] + move[1]] == "#"
             )
         ),
-        matrix[y + move[0]][x + move[1]]: matrix[y + move[1]][x + move[0]] == "#"
-        and (
-            matrix[y + move[1] + move[0]][x + move[0] + move[1]] == "#"
-            or matrix[y - move[1] + move[0]][x - move[0] + move[1]] == "#"
-        ),
-        matrix[y - move[0]][x - move[1]]: matrix[y + move[1]][x + move[0]] == "#"
-        and (
-            matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
-            or matrix[y - move[1] - move[0]][x - move[0] - move[1]] == "#"
+        matrix[y - move[0]][x - move[1]]: (
+            matrix[y + move[1]][x + move[0]] == "#"
+            and (
+                matrix[y + move[1] - move[0]][x + move[0] - move[1]] == "#"
+                or matrix[y - move[1] - move[0]][x - move[0] - move[1]] == "#"
+            )
         ),
     }
 

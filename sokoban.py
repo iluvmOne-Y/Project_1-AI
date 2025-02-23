@@ -9,10 +9,10 @@ UI = GUI.UI()
 
 # Get the moves corresponding to the keys
 moves = {
-    pygame.K_LEFT: "L",
-    pygame.K_RIGHT: "R",
-    pygame.K_UP: "U",
-    pygame.K_DOWN: "D",
+    pygame.K_LEFT: (-1, 0),
+    pygame.K_RIGHT: (1, 0),
+    pygame.K_UP: (0, -1),
+    pygame.K_DOWN: (0, 1),
 }
 
 # Initialize the level variable
@@ -35,13 +35,13 @@ while True:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key in moves:
-                    Utilities.movePlayer(moves[event.key], level)
+                    Utilities.movePlayer(level, moves[event.key])
                     UI.drawLevel(level.getMatrix())
                 elif event.key == pygame.K_r:
                     UI.initLevel(selectedLevel, selectedAlgorithm)
                 elif event.key == pygame.K_s:
-                    Utilities.solveLevel(level, lambda l: selectedAlgorithm(l,UI), UI)
-                    
+                    Utilities.solveLevel(level, selectedAlgorithm, UI)
+
                     levelFinished = True
                 elif event.key == pygame.K_m:
                     break
