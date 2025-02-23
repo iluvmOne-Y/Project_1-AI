@@ -1,4 +1,5 @@
 import time
+import heapq
 
 from collections import deque
 from copy import deepcopy
@@ -13,24 +14,23 @@ class State:
         self.boxes = boxes
         self.path = path
 
-
+"""Solving by using Breadth-First Search Algorithm"""
 def BFS(level, ui=None):
-    """Solve the level using the Breadth First Search algorithm.
-
-    ### Parameters
+    """### Parameters
     @level: The level to solve.
     """
+
     # Store the initial state of the level
     initialMatrix = level.getMatrix()
     initialPosition = level.getPlayerPosition()
     initialBoxes = level.getBoxes()
+    
     # Start measuring time and initialise node counter
     totalNodes = 0
     start_time = time.time()
 
     # Initalize the initial path of the level
     path = []
-
     directions = ["L", "R", "U", "D"]
     moves = {
         "L": (-1, 0),
@@ -49,11 +49,14 @@ def BFS(level, ui=None):
 
     visited = set(str(level.getMatrix()))
     queue = deque([State(level.getMatrix(), level.getPlayerPosition(), boxes, path)])
+
     # Iterate through the queue
     while queue:
         currentState = deepcopy(queue.popleft())
+
         # Increment the total number of nodes
         totalNodes += 1
+
         # Update GUI stats every 1000 nodes
         if ui and totalNodes % 1000 == 0:
             current_time = time.time() - start_time
@@ -64,6 +67,7 @@ def BFS(level, ui=None):
                 "steps": str(len(currentState.path)),
             }
             ui.drawStats(stats)
+
         # Check if all switches are activated
         if all(currentState.matrix[y][x] == "*" for x, y in level.switches):
             end_time = time.time()
@@ -82,6 +86,7 @@ def BFS(level, ui=None):
             level.boxes = initialBoxes
 
             return currentState.path
+        
         # Iterate through the directions
         for direction in directions:
             move = moves[direction]
@@ -112,21 +117,18 @@ def BFS(level, ui=None):
     level.matrix = initialMatrix
     level.playerPosition = initialPosition
     level.boxes = initialBoxes
-
     return None
 
-
+"""Solving by using Depth-First Search Algorithm"""
 def DFS(level, ui=None):
-    """Solve the level using the Depth First Search algorithm.
-
+    """
     ### Parameters
     @level: The level to solve.
     """
-    # # Get the initial state of the level
+    # Get the initial state of the level
     initialMatrix = level.getMatrix()
     initialPosition = level.getPlayerPosition()
     boxes = level.getBoxes()
-
     directions = ["L", "R", "U", "D"]
     moves = {
         "D": (0, 1),
@@ -150,8 +152,10 @@ def DFS(level, ui=None):
     # Iterate through the queue
     while stack:
         currentMatrix, currentPosition, currentPath = stack.pop()
+
         # Check if all switches are activated
         expanded_nodes += 1
+
         #Update GUI stats every 1000 nodes 
         if ui and expanded_nodes % 1000 ==0:
             current_time = time.time() - start_time
@@ -178,7 +182,7 @@ def DFS(level, ui=None):
         for direction in directions:
             move = moves[direction]
             # Check if the player can move in the given direction
-            newMatrix, newPosition, moveIsValid = tryMove(
+            newMatrix, newPosition, moveIsValid = Utilities.tryMove(
                 currentMatrix, currentPosition, move
             )
             # Add the new state to the queue
@@ -193,10 +197,7 @@ def DFS(level, ui=None):
 
     return None
 
-
-def AStar(level, ui = None):
-    return None
-
+"""Solving by using Uniform Cost Search Algorithm"""
 def UCS(level, ui = None):
     """Solve the level using the Uniform Cost Search algorithm."""
 
@@ -220,13 +221,13 @@ def UCS(level, ui = None):
 
     for box in boxes:
         for direction in directions:
-            if isDeadlock(level.getMatrix(), box, moves[direction]):
+            if Utilities.isDeadlock(level.getMatrix(), box, moves[direction]):
                 print("The level is in a deadlock state.")
                 return None
 
     visited = set()
     priority_queue = []
-    initialCost = calculateCost(initialPosition, boxes)
+    initialCost = Utilities.calculateCost(initialPosition, boxes)
     heapq.heappush(priority_queue, (initialCost, 0, deepcopy(initialMatrix), initialPosition, []))
 
     def tryMove(matrix, currentPosition, move):
@@ -257,7 +258,7 @@ def UCS(level, ui = None):
             newMatrix[boxNewPosition[1]][boxNewPosition[0]] = (
                 "$" if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == " " else "*"
             )
-            if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == "$" and isDeadlock(
+            if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == "$" and Utilities.isDeadlock(
                 newMatrix, boxNewPosition, move
             ):
                 return matrix, currentPosition, 0, False
@@ -304,15 +305,20 @@ def UCS(level, ui = None):
                     continue
                 visited.add(state)
                 newCost = cost + moveCost
-                heuristicCost = calculateCost(newPosition, level.getBoxes())
+                heuristicCost = Utilities.calculateCost(newPosition, level.getBoxes())
                 heapq.heappush(priority_queue, (heuristicCost + newCost, newCost, newMatrix, newPosition, currentPath + [direction]))
     
     return None
 
 
+"""Solving by using A* Algorithm"""
+def AStar(level, ui = None):
+    return None
+
+
 algorithms = {
-    "Breadth First Search": BFS,
-    "Depth First Search": DFS,
-    "A*": AStar,
+    "Breadth-First Search": BFS,
+    "Depth-First Search": DFS,
     "Uniform Cost Search": UCS,
+    "A*": AStar
 }

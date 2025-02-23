@@ -5,9 +5,9 @@ import pygame as pygame
 import Algorithms as Algorithms
 import Level as Level
 
-HeaderFont = 'themes/Headerfont3.otf'
-TextFont1 = 'themes/Headerfont2.ttf'
-TextFont2 = 'themes/Headerfont1.ttf'
+HeaderFont = 'themes/Header-font3.otf'
+TextFont1 = 'themes/Text-font2.ttf'
+TextFont2 = 'themes/Text-font1.ttf'
 
 class UI:
     """Class to handle the UI of the game."""
@@ -21,10 +21,13 @@ class UI:
     """Dictionary to store the sprites."""
     imageSize: int = 20
     """The size of the images."""
+
+
     def getPath(self):
         """Return the path of the current file."""
         return os.path.dirname(os.path.abspath(__file__))
     
+
     def __init__(self):
         """Initialize the UI, including the display, font, and sprites."""
         # Initialize the display for all platforms
@@ -41,9 +44,6 @@ class UI:
         pygame.mouse.set_visible(True)
         # Update the display
         pygame.display.update()
-
-        # Define a helper function to get the path of the current file
-        
 
         # Load all sprites
         self.sprites["@"] = pygame.image.load(
@@ -78,6 +78,7 @@ class UI:
         @text: The text to be displayed.
         @position: The position where the text should be displayed.
         @selected: Whether the menu item is selected.
+        @textFont: Set the text font.
         """
         font = pygame.font.Font(textFont, 50)  # Updated font path
         color = (255, 255, 0) if selected else (255, 255, 255)
@@ -94,6 +95,7 @@ class UI:
         @position: The position where the text should be displayed.
         @size: The size of the font.
         @color: The color of the text.
+        @textFont: Set the text font.
         """
         font = pygame.font.Font(textFont, size)
         textSurface = font.render(text, True, color)
@@ -102,6 +104,7 @@ class UI:
 
     def drawSelectionMenu(self):
         """Draw the combined algorithm and level selection menu and return the selected algorithm and level."""
+
         levels = [f"Level {i}" for i in range(1, 11)]
         algorithms = Algorithms.algorithms
         algorithmNames = list(algorithms.keys())
@@ -113,11 +116,12 @@ class UI:
             # Clear the screen
             self.screenSurface.fill((0, 0, 0))
             # Draw background
-            background = pygame.image.load(os.path.join(self.getPath(), "themes/images/background.png"))
+            background = pygame.image.load(os.path.join(self.getPath(), "themes/images/background2.png"))
             self.screenSurface.blit(background, (0, 0))
+
             try:
                 # Try to load and draw background
-                background = pygame.image.load("themes/images/background.png")
+                background = pygame.image.load("themes/images/background2.png")
                 self.screenSurface.blit(background, (0, 0))
             except (pygame.error, FileNotFoundError):
                 # If background image is missing, draw a gradient or pattern
