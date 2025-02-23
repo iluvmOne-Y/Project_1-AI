@@ -7,11 +7,11 @@ import Utilities as Utilities
 
 
 class State:
-    def __init__(self, matrix, playerPosition, boxes, totalCost, path):
+    def __init__(self, matrix, playerPosition, boxes, totalStep, path):
         self.matrix = matrix
         self.playerPosition = playerPosition
         self.boxes = boxes
-        self.totalCost = totalCost
+        self.totalStep = totalStep
         self.path = path
 
 
@@ -30,7 +30,7 @@ def BFS(level, ui=None):
     start_time = time.time()
 
     # Get the initial state of the level
-    totalCost = 0
+    totalStep = 0
     path = []
 
     directions = ["L", "R", "U", "D"]
@@ -51,7 +51,7 @@ def BFS(level, ui=None):
 
     visited = set(str(level.getMatrix()))
     queue = deque(
-        [State(level.getMatrix(), level.getPlayerPosition(), boxes, totalCost, path)]
+        [State(level.getMatrix(), level.getPlayerPosition(), boxes, totalStep, path)]
     )
     # Iterate through the queue
     while queue:
@@ -65,7 +65,7 @@ def BFS(level, ui=None):
                 "path": "".join(currentState.path),
                 "time": f"{current_time:.2f}s",
                 "nodes": str(totalNodes),
-                "cost": str(currentState.totalCost),
+                "steps": str(currentState.totalStep),
             }
             ui.drawStats(stats)
         # Check if all switches are activated
@@ -76,7 +76,7 @@ def BFS(level, ui=None):
                     "path": "".join(currentState.path),
                     "time": f"{end_time - start_time:.2f}s",
                     "nodes": str(totalNodes),
-                    "cost": str(currentState.totalCost),
+                    "steps": str(currentState.totalStep),
                     "status": "Solved",
                 }
                 ui.drawStats(stats)
@@ -109,7 +109,7 @@ def BFS(level, ui=None):
                             level.matrix,
                             level.playerPosition,
                             level.boxes,
-                            currentState.totalCost + cost,
+                            currentState.totalStep + 1,
                             currentState.path + [direction],
                         )
                     )
