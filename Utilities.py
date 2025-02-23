@@ -1,7 +1,6 @@
 import os as os
-
+import sys
 import pygame as pygame
-
 import Level as Level
 import GameUI as GameUI
 
