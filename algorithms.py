@@ -7,11 +7,10 @@ import Utilities as Utilities
 
 
 class State:
-    def __init__(self, matrix, playerPosition, boxes, totalStep, path):
+    def __init__(self, matrix, playerPosition, boxes, path):
         self.matrix = matrix
         self.playerPosition = playerPosition
         self.boxes = boxes
-        self.totalStep = totalStep
         self.path = path
 
 
@@ -29,8 +28,7 @@ def BFS(level, ui=None):
     totalNodes = 0
     start_time = time.time()
 
-    # Get the initial state of the level
-    totalStep = 0
+    # Initalize the initial path of the level
     path = []
 
     directions = ["L", "R", "U", "D"]
@@ -50,9 +48,7 @@ def BFS(level, ui=None):
                 return None
 
     visited = set(str(level.getMatrix()))
-    queue = deque(
-        [State(level.getMatrix(), level.getPlayerPosition(), boxes, totalStep, path)]
-    )
+    queue = deque([State(level.getMatrix(), level.getPlayerPosition(), boxes, path)])
     # Iterate through the queue
     while queue:
         currentState = deepcopy(queue.popleft())
@@ -65,7 +61,7 @@ def BFS(level, ui=None):
                 "path": "".join(currentState.path),
                 "time": f"{current_time:.2f}s",
                 "nodes": str(totalNodes),
-                "steps": str(currentState.totalStep),
+                "steps": str(len(currentState.path)),
             }
             ui.drawStats(stats)
         # Check if all switches are activated
@@ -76,7 +72,7 @@ def BFS(level, ui=None):
                     "path": "".join(currentState.path),
                     "time": f"{end_time - start_time:.2f}s",
                     "nodes": str(totalNodes),
-                    "steps": str(currentState.totalStep),
+                    "steps": str(len(currentState.path)),
                     "status": "Solved",
                 }
                 ui.drawStats(stats)
@@ -94,9 +90,7 @@ def BFS(level, ui=None):
             level.playerPosition = currentState.playerPosition
             level.boxes = currentState.boxes
             # Check if the player can move in the given direction
-            cost = Utilities.movePlayer(level, move, True)
-            # Add the new state to the queue
-            if cost != 0:
+            if Utilities.movePlayer(level, move, True) != 0:
                 # Check if the current matrix has been visited
                 currentMatrix = str(level.matrix)
                 if currentMatrix in visited:
@@ -109,7 +103,6 @@ def BFS(level, ui=None):
                             level.matrix,
                             level.playerPosition,
                             level.boxes,
-                            currentState.totalStep + 1,
                             currentState.path + [direction],
                         )
                     )
