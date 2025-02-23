@@ -1,6 +1,5 @@
 import sys
 import pygame
-
 import GameUI as GUI
 import Utilities as Utilities
 
