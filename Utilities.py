@@ -164,6 +164,55 @@ def movePlayer(direction: tuple, level: Level.Level):
 
     return matrix
 
+def calculateCost(playerPos, boxes):
+    """Calculate the heuristic cost based on the sum of Manhattan distances between player and boxes."""
+    return sum(abs(playerPos[0] - box[0]) + abs(playerPos[1] - box[1]) for box in boxes)
+
+def tryMove(matrix, currentPosition, move):
+        newMatrix = [row[:] for row in matrix]
+        newPosition = [
+            currentPosition[0] + move[0],
+            currentPosition[1] + move[1],
+        ]
+
+        # Check if the new position is a free space or a switch
+        if newMatrix[newPosition[1]][newPosition[0]] in [" ", "."]:
+            # Move the player
+            newMatrix[currentPosition[1]][currentPosition[0]] = (
+                " " if newMatrix[currentPosition[1]][currentPosition[0]] == "@" else "."
+            )
+            newMatrix[newPosition[1]][newPosition[0]] = (
+                "@" if newMatrix[newPosition[1]][newPosition[0]] == " " else "+"
+            )
+            return newMatrix, newPosition, True
+        # Check if the new position is a box
+        elif newMatrix[newPosition[1]][newPosition[0]] in ["$", "*"]:
+            boxNewPosition = [newPosition[0] + move[0], newPosition[1] + move[1]]
+            # Check if the box can be moved
+            if newMatrix[boxNewPosition[1]][boxNewPosition[0]] in [
+                "#",
+                "$",
+                "*",
+            ]:
+                return matrix, currentPosition, False
+            # Move the player and the box
+            newMatrix[currentPosition[1]][currentPosition[0]] = (
+                " " if newMatrix[currentPosition[1]][currentPosition[0]] == "@" else "."
+            )
+            newMatrix[newPosition[1]][newPosition[0]] = (
+                "@" if newMatrix[newPosition[1]][newPosition[0]] == "$" else "+"
+            )
+            newMatrix[boxNewPosition[1]][boxNewPosition[0]] = (
+                "$" if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == " " else "*"
+            )
+            # Check if the new state is in a deadlock
+            if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == "$" and isDeadlock(
+                newMatrix, boxNewPosition, move
+            ):
+                return matrix, currentPosition, False
+            return newMatrix, newPosition, True
+
+        return newMatrix, newPosition, False
 
 def isDeadlock(matrix: list, boxPosition: list, move: list) -> bool:
     """Check if the given box position is in a deadlock.
