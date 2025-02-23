@@ -18,6 +18,9 @@ def stop_function():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
                     stop_animation = False
+            elif event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
 
 
 def solveLevel(level: Level.Level, algorithm, UI):
@@ -42,19 +45,7 @@ def solveLevel(level: Level.Level, algorithm, UI):
             "D": (0, 1),
         }
         for direction in solution:
-
             stop_function()
-            # PAUSE ANIMATION WHEN ENTER SPACEBAR
-            # for event in pygame.event.get():
-            #     if event.type == pygame.KEYDOWN:
-            #         if event.key == pygame.K_SPACE:
-            #             stop_animation = True
-            # while stop_animation:
-            #     for event in pygame.event.get():
-            #         if event.type == pygame.KEYDOWN:
-            #             if event.key == pygame.K_SPACE:
-            #                 stop_animation = False
-
             movePlayer(level, moves[direction], True)
             UI.drawLevel(level.getMatrix())
             pygame.time.wait(100)
@@ -214,3 +205,18 @@ def isDeadlock(matrix: list, boxPosition: list, move: tuple) -> bool:
             return True
 
     return False
+
+def Manhattan_sum(level: Level):
+    """count the manhattan value for a state"""
+    box_pos = level.getBoxes()
+    goal_pos = level.getSwitches()
+    boxes_cost = (len(box_pos)) * level.getSize()[0] * level.getSize()[1]
+    
+    player_x, player_y = level.getPlayerPosition()
+    for box_x, box_y in box_pos:
+        boxes_cost += min(abs(box_x - goal_x) + abs(box_y - goal_y) 
+                          for goal_x, goal_y in goal_pos)
+    player_cost = min(abs(player_x - box_x) + abs(player_y - box_y) 
+                        for box_x, box_y in box_pos)
+    
+    return player_cost + boxes_cost
