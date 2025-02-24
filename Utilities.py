@@ -263,3 +263,19 @@ def isDeadlock(matrix: list, boxPosition: list, move: tuple) -> bool:
             return True
 
     return False
+
+
+def Manhattan_sum(level: Level):
+    """count the manhattan value for a state"""
+    box_pos = level.getBoxes()
+    goal_pos = level.getSwitches()
+    boxes_cost = (len(box_pos)) * level.getSize()[0] * level.getSize()[1]
+
+    player_x, player_y = level.getPlayerPosition()
+    for box_x, box_y in box_pos:
+        boxes_cost += min(abs(box_x - goal_x) + abs(box_y - goal_y)
+                          for goal_x, goal_y in goal_pos)
+    player_cost = min(abs(player_x - box_x) + abs(player_y - box_y)
+                      for box_x, box_y in box_pos)
+
+    return player_cost + boxes_cost

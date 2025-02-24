@@ -108,7 +108,7 @@ class UI:
         levels = [f"Level {i}" for i in range(1, 11)]
         algorithms = Algorithms.algorithms
         algorithmNames = list(algorithms.keys())
-
+        preview_offset = 245
         levelSelected = 0
         algorithmSelected = 0
         
@@ -157,7 +157,7 @@ class UI:
 
             # Draw the level
             level = Level.Level(levelSelected + 1)
-            self.drawLevel(level.getMatrix())
+            self.drawLevel(level.getMatrix(), offsetY=preview_offset)
             del level
 
             pygame.display.flip()
@@ -184,7 +184,7 @@ class UI:
                     pygame.quit()
                     sys.exit()
 
-    def drawLevel(self, matrix: list):
+    def drawLevel(self, matrix: list, offsetY: int = 150):
         """Draw the level on the screen.
 
         ### Parameters
@@ -193,15 +193,15 @@ class UI:
         # Calculate the offset to center the level
         levelWidth = len(matrix[0]) * self.imageSize
         levelHeight = len(matrix) * self.imageSize
-        offsetX = (self.screenSize[0] - levelWidth) // 2
-        offsetY = (self.screenSize[1] - levelHeight) // 2
-
+        offsetX = (self.screenSize[0] - levelWidth) // 2  
+        
+        
         # Iterate all Rows
         for i in range(0, len(matrix)):
             # Iterate all columns of the row and draw the corresponding sprite
             for c in range(0, len(matrix[i])):
                 self.screenSurface.blit(
-                    self.sprites[matrix[i][c]], (c * self.imageSize + offsetX, i * self.imageSize + 245)
+                    self.sprites[matrix[i][c]], (c * self.imageSize + offsetX, i * self.imageSize + offsetY)
                 )
         # Update the display
         pygame.display.update()
@@ -273,7 +273,7 @@ class UI:
         y_pos = 500
         for key, value in stats.items():
             if key == 'path':
-                path_chunks = [value[i:i+20] for i in range(0, len(value), 20)]
+                path_chunks = [value[i:i+60] for i in range(0, len(value), 20)]
                 self.drawText(f"Path", (self.screenSize[0]/2, y_pos))
                 y_pos += 20
                 for chunk in path_chunks:
@@ -281,7 +281,7 @@ class UI:
                     y_pos += 20
             else:
                 self.drawText(f"{key}: {value}", (self.screenSize[0]/2, y_pos))
-                y_pos += 40
+                y_pos += 20
         pygame.display.update()
         
     def initLevel(self, levelNumber: int, algorithm) -> Level.Level:
@@ -300,11 +300,13 @@ class UI:
         # Draw the menu
         pygame.display.flip()
         self.drawText("Level " + str(levelNumber), (self.screenSize[0]/2, 50))
-        self.drawText("Algorithm: " + algorithm.__name__, (self.screenSize[0]/2, 100))
-        self.drawText("Press S to solve", (self.screenSize[0]/2, 150))
-        self.drawText("Press M to return to menu", (self.screenSize[0]/2, 200))
+        self.drawText("Algorithm: " + algorithm.__name__, (self.screenSize[0]/2, 70))
+        self.drawText("Press S to solve", (self.screenSize[0]/2, 90))
+        self.drawText("Press M to return to menu", (self.screenSize[0]/2, 110))
 
         # Create an instance of this Level and draw it
         level = Level.Level(levelNumber)
-        self.drawLevel(level.getMatrix())
+        gameplay_offset = 150
+        self.drawLevel(level.getMatrix(), offsetY=gameplay_offset)
+        
         return level

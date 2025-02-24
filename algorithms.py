@@ -1,9 +1,9 @@
 import time
 import heapq
-
+from heapq import heappush, heappop
 from collections import deque
 from copy import deepcopy
-
+from itertools import count
 import Utilities as Utilities
 
 
@@ -162,7 +162,8 @@ def DFS(level, ui=None):
             stats = {
                 'path': ''.join(currentPath),
                 'time': f"{current_time:.2f}s",
-                'nodes': str(expanded_nodes)
+                'nodes': str(expanded_nodes),
+                "steps": str(len(currentPath))
             }
             ui.drawStats(stats)
         # Check if all switches are activated
@@ -173,6 +174,7 @@ def DFS(level, ui=None):
                     'path': ''.join(currentPath),
                     'time': f"{end_time - start_time:.2f}s",
                     'nodes': str(expanded_nodes),
+                    "steps": str(len(currentPath)),
                     'status': 'Solved'
                 }
                 ui.drawStats(stats)
@@ -276,7 +278,8 @@ def UCS(level, ui = None):
             stats = {
                 'path': ''.join(currentPath),
                 'time': f"{current_time:.2f}s",
-                'nodes': str(expanded_nodes)
+                'nodes': str(expanded_nodes),
+                "steps": str(len(currentPath)),
             }
             ui.drawStats(stats)
         # Check if all switches are activated
@@ -287,6 +290,7 @@ def UCS(level, ui = None):
                     'path': ''.join(currentPath),
                     'time': f"{end_time - start_time:.2f}s",
                     'nodes': str(expanded_nodes),
+                    "steps": str(len(currentPath)),
                     'status': 'Solved'
                 }
                 ui.drawStats(stats)
@@ -312,7 +316,110 @@ def UCS(level, ui = None):
 
 
 """Solving by using A* Algorithm"""
-def AStar(level, ui = None):
+
+
+def AStar(level, ui=None):
+    # Get the initial state of the level
+    initialMatrix = level.getMatrix()
+    initialPosition = level.getPlayerPosition()
+    initialBoxes = level.getBoxes()
+
+    totalNodes = 0
+    start_time = time.time()
+    path = []
+
+    directions = ["L", "R", "U", "D"]
+    moves = {
+        "L": (-1, 0),
+        "R": (1, 0),
+        "U": (0, -1),
+        "D": (0, 1),
+    }
+
+    # Check if the level is in a deadlock state
+    boxes = level.getBoxes()
+    for box in boxes:
+        for direction in directions:
+            if Utilities.isDeadlock(level.getMatrix(), box, moves[direction]):
+                print("The level is in a deadlock state.")
+                return None
+
+    intialCost = currDepth = 0
+    currCost = Utilities.Manhattan_sum(level)
+    priority_queue = []
+    visited = set()
+    counter = count()
+    heapq.heappush(priority_queue, (intialCost, currCost,next(counter),
+                              State(level.getMatrix(), level.getPlayerPosition(), boxes, path), currDepth))
+
+    while priority_queue:
+        """pop the smallest cost node"""
+        _, curr_cost,_, currentState, curr_depth = deepcopy(heappop(priority_queue))
+        # Increment the total number of nodes
+        totalNodes += 1
+        # Update GUI stats every 1000 nodes
+        if ui and totalNodes % 1000 == 0:
+            current_time = time.time() - start_time
+            stats = {
+                "path": "".join(currentState.path),
+                "time": f"{current_time:.2f}s",
+                "nodes": str(totalNodes),
+                "steps": str(len(currentState.path)),
+            }
+            ui.drawStats(stats)
+
+        # check if all switches are activated
+        if all(currentState.matrix[y][x] == "*" for x, y in level.getSwitches()):
+            end_time = time.time()
+            if ui:
+                stats = {
+                    "path": "".join(currentState.path),
+                    "time": f"{end_time - start_time:.2f}s",
+                    "nodes": str(totalNodes),
+                    "steps": str(len(currentState.path)),
+                    "status": "Solved",
+                }
+                ui.drawStats(stats)
+            # Return level to its original state
+            level.matrix = initialMatrix
+            level.playerPosition = initialPosition
+            level.boxes = initialBoxes
+            return currentState.path
+
+        for direction in directions:
+            move = moves[direction]
+            # Update level state
+            level.matrix = currentState.matrix
+            level.playerPosition = currentState.playerPosition
+            level.boxes = currentState.boxes
+            # Check if payer can move in the given direction
+
+            moveCost = Utilities.movePlayer(level, move, True)
+            if moveCost != 0:
+                # Check if the current matrix has been visited
+                currentMatrix = str(level.matrix)
+                if currentMatrix in visited:
+                    continue
+                visited.add(currentMatrix)
+                newCost = Utilities.Manhattan_sum(level)
+                heappush(priority_queue, (
+                    moveCost + curr_cost, #priority
+                    newCost, #heuristic cost
+                    next(counter), #tie-break
+                    State(
+                        level.matrix,
+                        level.playerPosition,
+                        level.boxes,
+                        currentState.path + [direction]
+                    ),
+                    curr_depth + 1,
+                ))
+    # Return level to its original state
+    level.matrix = initialMatrix
+    level.playerPosition = initialPosition
+    level.boxes = initialBoxes
+
+    print("Can't found the wae")
     return None
 
 
