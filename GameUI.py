@@ -265,6 +265,7 @@ class UI:
         ### Parameters
         @stats: Dictionary containing path, time and nodes statistics
         """
+        self.current_stats = stats
         # Clear the stats area
         pygame.draw.rect(self.screenSurface, (0, 0, 0), 
                     (self.screenSize[0]-500, 500, 500, 200))

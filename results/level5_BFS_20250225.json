@@ -1,0 +1,11 @@
+[
+    {
+        "algorithm": "BFS",
+        "level": 5,
+        "timestamp": "2025-02-25 21:21:28",
+        "time": "0.07s",
+        "nodes": "1683",
+        "steps": "61",
+        "memory": "3.45MB"
+    }
+]

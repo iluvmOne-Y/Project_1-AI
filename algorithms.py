@@ -5,21 +5,26 @@ from collections import deque
 from copy import deepcopy
 from itertools import count
 import Utilities as Utilities
-
-
+import psutil
+import os
 class State:
     def __init__(self, matrix, playerPosition, boxes, path):
         self.matrix = matrix
         self.playerPosition = playerPosition
         self.boxes = boxes
         self.path = path
-
+    
 """Solving by using Breadth-First Search Algorithm"""
+def get_memory_usage():
+    """Get current memory usage in MB"""
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024  # Convert bytes to MB
+
 def BFS(level, ui=None):
     """### Parameters
     @level: The level to solve.
     """
-
+    
     # Store the initial state of the level
     initialMatrix = level.getMatrix()
     initialPosition = level.getPlayerPosition()
@@ -28,7 +33,7 @@ def BFS(level, ui=None):
     # Start measuring time and initialise node counter
     totalNodes = 0
     start_time = time.time()
-
+    start_memory = get_memory_usage()
     # Initalize the initial path of the level
     path = []
     directions = ["L", "R", "U", "D"]
@@ -50,6 +55,7 @@ def BFS(level, ui=None):
     visited = set(str(level.getMatrix()))
     queue = deque([State(level.getMatrix(), level.getPlayerPosition(), boxes, path)])
 
+    
     # Iterate through the queue
     while queue:
         currentState = deepcopy(queue.popleft())
@@ -60,26 +66,31 @@ def BFS(level, ui=None):
         # Update GUI stats every 1000 nodes
         if ui and totalNodes % 1000 == 0:
             current_time = time.time() - start_time
+            current_memory = get_memory_usage() - start_memory
             stats = {
                 "path": "".join(currentState.path),
                 "time": f"{current_time:.2f}s",
                 "nodes": str(totalNodes),
                 "steps": str(len(currentState.path)),
+                'memory': f"{current_memory:.2f}MB"
             }
             ui.drawStats(stats)
 
         # Check if all switches are activated
         if all(currentState.matrix[y][x] == "*" for x, y in level.switches):
             end_time = time.time()
+            memory_used = get_memory_usage() - start_memory
             if ui:
                 stats = {
                     "path": "".join(currentState.path),
                     "time": f"{end_time - start_time:.2f}s",
                     "nodes": str(totalNodes),
                     "steps": str(len(currentState.path)),
+                    'memory': f"{memory_used:.2f}MB",
                     "status": "Solved",
                 }
                 ui.drawStats(stats)
+            
             # Return level to its original state
             level.matrix = initialMatrix
             level.playerPosition = initialPosition
@@ -113,6 +124,9 @@ def BFS(level, ui=None):
                     )
                 )
 
+
+
+
     # Return level to its original state
     level.matrix = initialMatrix
     level.playerPosition = initialPosition
@@ -138,7 +152,7 @@ def DFS(level, ui=None):
     }
     start_time = time.time()
     expanded_nodes = 0
-
+    start_memory = get_memory_usage()
     # Check if the level is in a deadlock state
     for box in boxes:
         for direction in directions:
@@ -159,26 +173,30 @@ def DFS(level, ui=None):
         #Update GUI stats every 1000 nodes 
         if ui and expanded_nodes % 1000 ==0:
             current_time = time.time() - start_time
+            current_memory = get_memory_usage() - start_memory
             stats = {
                 'path': ''.join(currentPath),
                 'time': f"{current_time:.2f}s",
                 'nodes': str(expanded_nodes),
-                "steps": str(len(currentPath))
+                "steps": str(len(currentPath)),
+                'memory': f"{current_memory:.2f}MB"
             }
             ui.drawStats(stats)
         # Check if all switches are activated
         if all(currentMatrix[y][x] == "*" for x, y in level.getSwitches()):
             end_time = time.time()
+            memory_used = get_memory_usage() - start_memory
             if ui:
                 stats = {
                     'path': ''.join(currentPath),
                     'time': f"{end_time - start_time:.2f}s",
                     'nodes': str(expanded_nodes),
                     "steps": str(len(currentPath)),
+                    'memory': f"{memory_used:.2f}MB",
                     'status': 'Solved'
                 }
                 ui.drawStats(stats)
-       
+            
             return currentPath
         # Iterate through the directions
         for direction in directions:
@@ -208,6 +226,7 @@ def UCS(level, ui = None):
 
     #Initialise node counter
     expanded_nodes = 0
+    start_memory = get_memory_usage()
 
     initialMatrix = level.getMatrix()
     initialPosition = level.getPlayerPosition()
@@ -275,25 +294,30 @@ def UCS(level, ui = None):
 
         if ui and expanded_nodes % 1000 == 0:
             current_time = time.time() - start_time
+            current_memory = get_memory_usage() - start_memory
             stats = {
                 'path': ''.join(currentPath),
                 'time': f"{current_time:.2f}s",
                 'nodes': str(expanded_nodes),
                 "steps": str(len(currentPath)),
+                'memory': f"{current_memory:.2f}MB"
             }
             ui.drawStats(stats)
         # Check if all switches are activated
         if all(currentMatrix[y][x] == "*" for x, y in level.getSwitches()):
             end_time = time.time()
+            memory_used = get_memory_usage() - start_memory 
             if ui:
                 stats = {
                     'path': ''.join(currentPath),
                     'time': f"{end_time - start_time:.2f}s",
                     'nodes': str(expanded_nodes),
                     "steps": str(len(currentPath)),
+                    'memory': f"{memory_used:.2f}MB",
                     'status': 'Solved'
                 }
                 ui.drawStats(stats)
+            
             return currentPath
 
         # Check if all switches are activated
@@ -326,6 +350,7 @@ def AStar(level, ui=None):
 
     totalNodes = 0
     start_time = time.time()
+    start_memory = get_memory_usage()
     path = []
 
     directions = ["L", "R", "U", "D"]
@@ -360,26 +385,32 @@ def AStar(level, ui=None):
         # Update GUI stats every 1000 nodes
         if ui and totalNodes % 1000 == 0:
             current_time = time.time() - start_time
+            current_memory = get_memory_usage() - start_memory
             stats = {
                 "path": "".join(currentState.path),
                 "time": f"{current_time:.2f}s",
                 "nodes": str(totalNodes),
                 "steps": str(len(currentState.path)),
+                'memory': f"{current_memory:.2f}MB"
             }
             ui.drawStats(stats)
 
         # check if all switches are activated
         if all(currentState.matrix[y][x] == "*" for x, y in level.getSwitches()):
             end_time = time.time()
+            memory_used = get_memory_usage() - start_memory
             if ui:
                 stats = {
                     "path": "".join(currentState.path),
                     "time": f"{end_time - start_time:.2f}s",
                     "nodes": str(totalNodes),
                     "steps": str(len(currentState.path)),
+                    'memory': f"{memory_used:.2f}MB",
                     "status": "Solved",
                 }
                 ui.drawStats(stats)
+            
+            
             # Return level to its original state
             level.matrix = initialMatrix
             level.playerPosition = initialPosition
@@ -423,9 +454,13 @@ def AStar(level, ui=None):
     return None
 
 
+
+
+# ...existing algorithms dictionary...
 algorithms = {
     "Breadth-First Search": BFS,
     "Depth-First Search": DFS,
     "Uniform Cost Search": UCS,
     "A*": AStar
 }
+

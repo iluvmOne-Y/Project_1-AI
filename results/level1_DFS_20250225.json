@@ -1,0 +1,11 @@
+[
+    {
+        "algorithm": "DFS",
+        "level": 1,
+        "timestamp": "2025-02-25 21:17:20",
+        "time": "0.00s",
+        "nodes": "92",
+        "steps": "67",
+        "memory": "0.05MB"
+    }
+]

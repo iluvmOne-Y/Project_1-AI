@@ -1,0 +1,56 @@
+[
+    {
+        "algorithm": "BFS",
+        "level": 1,
+        "timestamp": "2025-02-25 21:17:03",
+        "time": "0.01s",
+        "nodes": "204",
+        "steps": "37",
+        "memory": "0.14MB"
+    },
+    {
+        "algorithm": "BFS",
+        "level": 1,
+        "timestamp": "2025-02-25 21:42:46",
+        "time": "0.01s",
+        "nodes": "204",
+        "steps": "37",
+        "memory": "0.47MB"
+    },
+    {
+        "algorithm": "BFS",
+        "level": 1,
+        "timestamp": "2025-02-25 21:43:17",
+        "time": "0.01s",
+        "nodes": "204",
+        "steps": "37",
+        "memory": "0.12MB"
+    },
+    {
+        "algorithm": "BFS",
+        "level": 1,
+        "timestamp": "2025-02-25 21:43:52",
+        "time": "0.01s",
+        "nodes": "204",
+        "steps": "37",
+        "memory": "0.14MB"
+    },
+    {
+        "algorithm": "BFS",
+        "level": 1,
+        "timestamp": "2025-02-25 21:55:13",
+        "time": "0.01s",
+        "nodes": "204",
+        "steps": "37",
+        "memory": "0.09MB"
+    },
+    {
+        "algorithm": "BFS",
+        "level": 1,
+        "timestamp": "2025-02-25 22:00:11",
+        "time": "0.01s",
+        "nodes": "204",
+        "steps": "37",
+        "memory": "0.06MB"
+    }
+]

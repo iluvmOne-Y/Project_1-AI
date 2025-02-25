@@ -1,0 +1,11 @@
+[
+    {
+        "algorithm": "UCS",
+        "level": 8,
+        "timestamp": "2025-02-25 21:29:18",
+        "time": "0.19s",
+        "nodes": "9389",
+        "steps": "117",
+        "memory": "2.25MB"
+    }
+]
