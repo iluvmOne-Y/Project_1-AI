@@ -61,7 +61,6 @@ def BFS(level, ui=None):
         if ui and totalNodes % 1000 == 0:
             current_time = time.time() - start_time
             stats = {
-                "path": "".join(currentState.path),
                 "time": f"{current_time:.2f}s",
                 "nodes": str(totalNodes),
                 "steps": str(len(currentState.path)),
@@ -73,7 +72,6 @@ def BFS(level, ui=None):
             end_time = time.time()
             if ui:
                 stats = {
-                    "path": "".join(currentState.path),
                     "time": f"{end_time - start_time:.2f}s",
                     "nodes": str(totalNodes),
                     "steps": str(len(currentState.path)),
@@ -160,7 +158,6 @@ def DFS(level, ui=None):
         if ui and expanded_nodes % 1000 ==0:
             current_time = time.time() - start_time
             stats = {
-                'path': ''.join(currentPath),
                 'time': f"{current_time:.2f}s",
                 'nodes': str(expanded_nodes)
             }
@@ -170,7 +167,6 @@ def DFS(level, ui=None):
             end_time = time.time()
             if ui:
                 stats = {
-                    'path': ''.join(currentPath),
                     'time': f"{end_time - start_time:.2f}s",
                     'nodes': str(expanded_nodes),
                     'status': 'Solved'
@@ -274,7 +270,6 @@ def UCS(level, ui = None):
         if ui and expanded_nodes % 1000 == 0:
             current_time = time.time() - start_time
             stats = {
-                'path': ''.join(currentPath),
                 'time': f"{current_time:.2f}s",
                 'nodes': str(expanded_nodes)
             }
@@ -284,7 +279,6 @@ def UCS(level, ui = None):
             end_time = time.time()
             if ui:
                 stats = {
-                    'path': ''.join(currentPath),
                     'time': f"{end_time - start_time:.2f}s",
                     'nodes': str(expanded_nodes),
                     'status': 'Solved'
@@ -313,7 +307,135 @@ def UCS(level, ui = None):
 
 """Solving by using A* Algorithm"""
 def AStar(level, ui = None):
+    start_time = time.time()
+    generated_nodes = 0
+    
+    # Get the initial state of the level
+    initialMatrix = level.getMatrix()
+    initialPosition = level.getPlayerPosition()
+    switchPosition = level.getSwitches()
+    boxes = level.getBoxes()
+
+    directions = ["L", "R", "U", "D"]
+    moves = {
+        "L": (-1, 0),
+        "R": (1, 0),
+        "U": (0, -1),
+        "D": (0, 1),
+    }
+
+    # Check if the level is in a deadlock state
+    for box in boxes:
+        for direction in directions:
+            if Utilities.isDeadlock(level.getMatrix(), box, moves[direction]):
+                print("The level is in a deadlock state.")
+                return None
+    
+    intialCost = 0
+    currCost = Utilities.Manhattan_Sum(initialMatrix, switchPosition, boxes, initialPosition)
+    priority_queue = []
+    visited = set()
+
+    heapq.heappush(priority_queue, (intialCost, currCost, initialMatrix, initialPosition, boxes, []))
+
+    def tryMove(matrix, currentPosition, boxPosition, move):
+        newMatrix = [row[:] for row in matrix]
+        newPosition = [
+            currentPosition[0] + move[0],
+            currentPosition[1] + move[1],
+        ]
+        new_boxPosition = deepcopy(boxPosition)
+        the_cost = 1
+        # Check if the new position is a free space or a switch
+        if newMatrix[newPosition[1]][newPosition[0]] in [" ", "."]:
+            # Move the player
+            newMatrix[currentPosition[1]][currentPosition[0]] = (
+                " " if newMatrix[currentPosition[1]][currentPosition[0]] == "@" else "."
+            )
+            newMatrix[newPosition[1]][newPosition[0]] = (
+                "@" if newMatrix[newPosition[1]][newPosition[0]] == " " else "+"
+            )
+            return newMatrix, newPosition, the_cost, new_boxPosition, True
+        # Check if the new position is a box
+        elif newMatrix[newPosition[1]][newPosition[0]] in ["$", "*"]:
+            boxNewPosition = [newPosition[0] + move[0], newPosition[1] + move[1]]
+            # Check if the box can be moved
+            if newMatrix[boxNewPosition[1]][boxNewPosition[0]] in [
+                "#",
+                "$",
+                "*",
+            ]:
+                return matrix, currentPosition, the_cost, new_boxPosition, False
+            # Move the player and the box
+            newMatrix[currentPosition[1]][currentPosition[0]] = (
+                " " if newMatrix[currentPosition[1]][currentPosition[0]] == "@" else "."
+            )
+            newMatrix[newPosition[1]][newPosition[0]] = (
+                "@" if newMatrix[newPosition[1]][newPosition[0]] == "$" else "+"
+            )
+            newMatrix[boxNewPosition[1]][boxNewPosition[0]] = (
+                "$" if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == " " else "*"
+            )
+            # Check if the new state is in a deadlock
+            if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == "$" and Utilities.isDeadlock(
+                newMatrix, boxNewPosition, move
+            ): 
+                return matrix, currentPosition, the_cost, new_boxPosition, False
+            new_boxPosition[(boxNewPosition[0], boxNewPosition[1])] = new_boxPosition.pop((newPosition[0], newPosition[1]))
+            return newMatrix, newPosition, new_boxPosition[(boxNewPosition[0], boxNewPosition[1])], new_boxPosition, True
+
+        return newMatrix, newPosition, the_cost, new_boxPosition, False
+
+    while priority_queue:
+        """pop the smallest cost node"""
+        generated_nodes += 1
+        _, curr_cost, currentMatrix, currentPosition, box_pos, path = heapq.heappop(priority_queue)
+        if ui and generated_nodes % 1000 == 0:
+            current_time = time.time() - start_time
+            stats = {
+                'time': f"{current_time:.2f}s",
+                'nodes': str(generated_nodes)
+            }
+            ui.drawStats(stats)
+        
+        # check if all switches are activated
+        if all(currentMatrix[y][x] == "*" for x, y in level.getSwitches()):
+            end_time = time.time()
+            if ui:
+                stats = {
+                    'time': f"{end_time - start_time:.2f}s",
+                    'nodes': str(generated_nodes),
+                    'status': 'Solved'
+                }
+                ui.drawStats(stats)
+            return path
+            
+        
+        for direction in directions:
+            move = moves[direction]
+            
+            newMatrix, newPosition, moveCost, new_box_pos, moveIsValid = tryMove(
+            currentMatrix, currentPosition, box_pos, move)
+
+            if moveIsValid:
+                state = str(newMatrix)
+                if state in visited:
+                    continue
+                visited.add(state)
+                
+                new_cost = Utilities.Manhattan_Sum(newMatrix, switchPosition, new_box_pos, newPosition)
+                heapq.heappush(priority_queue, (
+                            moveCost + curr_cost,
+                            new_cost,
+                            newMatrix,
+                            newPosition,
+                            new_box_pos, # instead of using this, let's use box_pos = dictionary{(x, y): weight}
+                            path + [direction],
+                ))
+    
+    print("Can't found the wae")
     return None
+
 
 
 algorithms = {

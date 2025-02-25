@@ -33,7 +33,7 @@ class UI:
         # Initialize the display for all platforms
         pygame.display.init()
         pygame.display.set_caption("Ares' adventure")  # Window title
-        self.screenSize = (550, 700)  # Window size
+        self.screenSize = (900, 900)  # Window size
         self.screenSurface = pygame.display.set_mode(self.screenSize, pygame.RESIZABLE)  # Window
 
         # Clear the screen to white
