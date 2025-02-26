@@ -24,10 +24,11 @@ sample_data = """\
 """
 
 # Create instance and generate PDF
+""""
 visualizer = StatsVisualizer(sample_data)
 visualizer.generate_pdf()
 stats_visualizer = StatsVisualizer(sample_data)
-
+"""
 
 
 
@@ -59,7 +60,7 @@ def save_algorithm_stats(algorithm_name, level_number, stats):
         json.dump(data, f, indent=4)
     
     # Generate updated PDF report
-    stats_visualizer.generate_pdf()
+    # stats_visualizer.generate_pdf()
 
 # Initialize Pygame
 UI = GUI.UI()

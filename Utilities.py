@@ -264,18 +264,25 @@ def isDeadlock(matrix: list, boxPosition: list, move: tuple) -> bool:
 
     return False
 
+def get_total_tiles(matrix):
+    """return value of boxes and goal position"""
+    total_tiles = 0
+    for i in range(len(matrix)): # row
+        for j in range(len(matrix[i])): # col
+            total_tiles += 1
+    return total_tiles
 
-def Manhattan_sum(level: Level):
-    """count the manhattan value for a state"""
-    box_pos = level.getBoxes()
-    goal_pos = level.getSwitches()
-    boxes_cost = (len(box_pos)) * level.getSize()[0] * level.getSize()[1]
 
-    player_x, player_y = level.getPlayerPosition()
-    for box_x, box_y in box_pos:
-        boxes_cost += min(abs(box_x - goal_x) + abs(box_y - goal_y)
-                          for goal_x, goal_y in goal_pos)
-    player_cost = min(abs(player_x - box_x) + abs(player_y - box_y)
-                      for box_x, box_y in box_pos)
+def Manhattan_Sum(matrix, goal_position, box_position, player_pos):
+    """make some variables with some weird value for the heuristic"""
+    total_tiles = get_total_tiles(matrix)
+    player_x, player_y = player_pos
+    boxes_cost = len(box_position) * total_tiles
+    player_cost = 0
+    for box_x, box_y in box_position:
+        boxes_cost += min(
+            abs(box_x - goal_x) + abs(box_y - goal_y) for goal_x, goal_y in goal_position) if goal_position else 0
 
-    return player_cost + boxes_cost
+    player_cost = min(
+        abs(box_x - player_x) + abs(box_y - player_y) for box_x, box_y in box_position) if box_position else 0
+    return boxes_cost + player_cost
