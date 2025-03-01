@@ -1,9 +1,12 @@
 import os as os
 import sys as sys
 import copy
+import numpy as np
 import pygame as pygame
 import Level as Level
 import GameUI as GameUI
+
+from heapq import heappush, heappop
 
 
 def stop_function():
@@ -264,7 +267,6 @@ def isDeadlock(matrix: list, boxPosition: list, move: tuple) -> bool:
 
     return False
 
-
 def Manhattan_sum(level: Level):
     """count the manhattan value for a state"""
     box_pos = level.getBoxes()
@@ -279,3 +281,53 @@ def Manhattan_sum(level: Level):
                       for box_x, box_y in box_pos)
 
     return player_cost + boxes_cost
+
+def getTiles(matrix):
+    tiles = 0
+    for row in range(len(matrix)):
+        for _ in range(len(matrix[row])):
+            tiles += 1
+    return tiles
+
+def dijkstra(matrix, player_pos = None, box_pos = None, weight = 1):
+    dijk = np.array([[float('inf') for _ in range(matrix[row])] for row in range(len(matrix))])
+    dijk[box_pos or player_pos] = 0
+    moves = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    heap = [(0, box_pos or player_pos)]
+    obstacles = '#' if player_pos else '#$*'
+	
+    while heap:
+        distance, curr_pos = heappop(heap)
+        if distance > dijk[curr_pos]:
+            continue
+        for move in moves:
+            new_x, new_y = curr_pos[0] + move[0], curr_pos[1] + move[1]
+            new_pos = new_x, new_y
+            if (1 <= new_x < len(matrix) - 1 and
+                1 <= new_y < len(matrix[new_x]) - 1 and
+                matrix[new_y][new_x] not in obstacles):
+                new_distance = distance + weight
+                if new_distance < dijk[new_pos]:
+                    dijk[new_pos] = new_distance
+                    heappush(heap, (new_distance, new_pos))
+    return dijk
+
+def dijkstra_sum(level:Level, distances):
+	# boxes, goals, boxes_on_goal = find_boxes_and_goals(state, shape)
+    boxes = level.getBoxes()
+    player_pos = level.getPlayerPosition()
+    goals = level.getSwitches()
+
+    matrix = level.getMatrix()
+
+    boxes_cost = len(boxes) * getTiles(matrix)
+    player_cost = 0 
+    for box_postion, weight in boxes.items():
+        distances[box_postion] = dijkstra(matrix, box_pos=box_postion, weight = weight)
+    distances[player_pos] = dijkstra(matrix, player_pos=player_pos)
+
+    for box_position, weight in boxes.items():
+        boxes_cost += min(distances[box_position][goal] for goal in goals)
+    player_cost = min(distances[player_pos][box_postion] for box_position, weight in boxes.items())
+    
+    return boxes_cost + player_cost
