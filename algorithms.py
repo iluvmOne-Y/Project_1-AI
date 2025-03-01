@@ -217,20 +217,22 @@ def DFS(level, ui=None):
 
     return None
 
+
+
 """Solving by using Uniform Cost Search Algorithm"""
-def UCS(level, ui = None):
-    """Solve the level using the Uniform Cost Search algorithm."""
-
-    #Start measuring time
-    start_time = time.time()
-
-    #Initialise node counter
-    expanded_nodes = 0
-    start_memory = get_memory_usage()
-
+def UCS(level, ui=None):
+    """
+    ### Parameters
+    @level: The level to solve.
+    """
     initialMatrix = level.getMatrix()
     initialPosition = level.getPlayerPosition()
-    boxes = level.getBoxes()
+    initialBoxes = level.getBoxes()
+
+    totalNodes = 0
+    start_time = time.time()
+    start_memory = get_memory_usage()
+    path = []
 
     directions = ["L", "R", "U", "D"]
     moves = {
@@ -240,108 +242,94 @@ def UCS(level, ui = None):
         "D": (0, 1),
     }
 
+    # Check if the level is in a deadlock state
+    boxes = level.getBoxes()
     for box in boxes:
         for direction in directions:
             if Utilities.isDeadlock(level.getMatrix(), box, moves[direction]):
                 print("The level is in a deadlock state.")
                 return None
 
-    visited = set()
+    intialCost = 0
     priority_queue = []
-    initialCost = Utilities.calculateCost(initialPosition, boxes)
-    heapq.heappush(priority_queue, (initialCost, 0, deepcopy(initialMatrix), initialPosition, []))
-
-    def tryMove(matrix, currentPosition, move):
-        newMatrix = [row[:] for row in matrix]
-        newPosition = [
-            currentPosition[0] + move[0],
-            currentPosition[1] + move[1],
-        ]
-
-        if newMatrix[newPosition[1]][newPosition[0]] in [" ", "."]:
-            newMatrix[currentPosition[1]][currentPosition[0]] = (
-                " " if newMatrix[currentPosition[1]][currentPosition[0]] == "@" else "."
-            )
-            newMatrix[newPosition[1]][newPosition[0]] = (
-                "@" if newMatrix[newPosition[1]][newPosition[0]] == " " else "+"
-            )
-            return newMatrix, newPosition, 1, True
-        elif newMatrix[newPosition[1]][newPosition[0]] in ["$", "*"]:
-            boxNewPosition = [newPosition[0] + move[0], newPosition[1] + move[1]]
-            if newMatrix[boxNewPosition[1]][boxNewPosition[0]] in ["#", "$", "*"]:
-                return matrix, currentPosition, 0, False
-            newMatrix[currentPosition[1]][currentPosition[0]] = (
-                " " if newMatrix[currentPosition[1]][currentPosition[0]] == "@" else "."
-            )
-            newMatrix[newPosition[1]][newPosition[0]] = (
-                "@" if newMatrix[newPosition[1]][newPosition[0]] == "$" else "+"
-            )
-            newMatrix[boxNewPosition[1]][boxNewPosition[0]] = (
-                "$" if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == " " else "*"
-            )
-            if newMatrix[boxNewPosition[1]][boxNewPosition[0]] == "$" and Utilities.isDeadlock(
-                newMatrix, boxNewPosition, move
-            ):
-                return matrix, currentPosition, 0, False
-            return newMatrix, newPosition, 2, True
-
-        return newMatrix, newPosition, 0, False
+    visited = set()
+    counter = count()
+    heapq.heappush(priority_queue, (intialCost, next(counter),
+                              State(level.getMatrix(), level.getPlayerPosition(), boxes, path)))
 
     while priority_queue:
-        heuristic, cost, currentMatrix, currentPosition, currentPath = heapq.heappop(priority_queue)
-        
-        expanded_nodes += 1
-
-        if ui and expanded_nodes % 1000 == 0:
+        """pop the smallest cost node"""
+        curr_cost, _, currentState= deepcopy(heappop(priority_queue))
+        # Increment the total number of nodes
+        totalNodes += 1
+        # Update GUI stats every 1000 nodes
+        if ui and totalNodes % 1000 == 0:
             current_time = time.time() - start_time
             current_memory = get_memory_usage() - start_memory
             stats = {
-                'path': ''.join(currentPath),
-                'time': f"{current_time:.2f}s",
-                'nodes': str(expanded_nodes),
-                "steps": str(len(currentPath)),
+                "path": "".join(currentState.path),
+                "time": f"{current_time:.2f}s",
+                "nodes": str(totalNodes),
+                "steps": str(len(currentState.path)),
                 'memory': f"{current_memory:.2f}MB"
             }
             ui.drawStats(stats)
-        # Check if all switches are activated
-        if all(currentMatrix[y][x] == "*" for x, y in level.getSwitches()):
+
+        # check if all switches are activated
+        if all(currentState.matrix[y][x] == "*" for x, y in level.getSwitches()):
             end_time = time.time()
-            memory_used = get_memory_usage() - start_memory 
+            memory_used = get_memory_usage() - start_memory
             if ui:
                 stats = {
-                    'path': ''.join(currentPath),
-                    'time': f"{end_time - start_time:.2f}s",
-                    'nodes': str(expanded_nodes),
-                    "steps": str(len(currentPath)),
+                    "path": "".join(currentState.path),
+                    "time": f"{end_time - start_time:.2f}s",
+                    "nodes": str(totalNodes),
+                    "steps": str(len(currentState.path)),
                     'memory': f"{memory_used:.2f}MB",
-                    'status': 'Solved'
+                    "status": "Solved",
                 }
                 ui.drawStats(stats)
             
-            return currentPath
+            
+            # Return level to its original state
+            level.matrix = initialMatrix
+            level.playerPosition = initialPosition
+            level.boxes = initialBoxes
+            return currentState.path
 
-        # Check if all switches are activated
         for direction in directions:
             move = moves[direction]
-            newMatrix, newPosition, moveCost, moveIsValid = tryMove(
-                currentMatrix, currentPosition, move
-            )
-            
-            if moveIsValid:
-                state = str(newMatrix)
-                if state in visited:
+            # Update level state
+            level.matrix = currentState.matrix
+            level.playerPosition = currentState.playerPosition
+            level.boxes = currentState.boxes
+            # Check if payer can move in the given direction
+
+            moveCost = Utilities.movePlayer(level, move, True)
+            if moveCost != 0:
+                # Check if the current matrix has been visited
+                currentMatrix = str(level.matrix)
+                if currentMatrix in visited:
                     continue
-                visited.add(state)
-                newCost = cost + moveCost
-                heuristicCost = Utilities.calculateCost(newPosition, level.getBoxes())
-                heapq.heappush(priority_queue, (heuristicCost + newCost, newCost, newMatrix, newPosition, currentPath + [direction]))
-    
+                visited.add(currentMatrix)
+                heappush(priority_queue, (
+                    moveCost + curr_cost, #priority
+                    next(counter), #tie-break
+                    State(
+                        level.matrix,
+                        level.playerPosition,
+                        level.boxes,
+                        currentState.path + [direction]
+                    )
+                ))
+    # Return level to its original state
+    level.matrix = initialMatrix
+    level.playerPosition = initialPosition
+    level.boxes = initialBoxes
     return None
 
 
 """Solving by using A* Algorithm"""
-
-
 def AStar(level, ui=None):
     # Get the initial state of the level
     initialMatrix = level.getMatrix()
@@ -450,11 +438,8 @@ def AStar(level, ui=None):
     level.playerPosition = initialPosition
     level.boxes = initialBoxes
 
-    print("Can't found the wae")
+    print("Can't find the wae")
     return None
-
-
-
 
 # ...existing algorithms dictionary...
 algorithms = {
