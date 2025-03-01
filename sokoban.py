@@ -112,7 +112,11 @@ while True:
                     break
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
-                    sys.exit()
+                    sys.exit()  
+            elif event.type == pygame.VIDEORESIZE:
+                    UI.resizeWindow(event.size)
+                    if level:
+                        UI.drawLevel(level.getMatrix())
             elif event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()

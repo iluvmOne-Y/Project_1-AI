@@ -1,0 +1,11 @@
+[
+    {
+        "algorithm": "Dijkstra",
+        "level": 1,
+        "timestamp": "2025-03-01 23:58:09",
+        "time": "0.00s",
+        "nodes": "451",
+        "steps": "37",
+        "memory": "0.12MB"
+    }
+]

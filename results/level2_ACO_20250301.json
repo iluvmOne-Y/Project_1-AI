@@ -1,0 +1,20 @@
+[
+    {
+        "algorithm": "ACO",
+        "level": 2,
+        "timestamp": "2025-03-01 23:57:34",
+        "time": "0.00s",
+        "nodes": 0,
+        "steps": 0,
+        "memory": "0.00MB"
+    },
+    {
+        "algorithm": "ACO",
+        "level": 2,
+        "timestamp": "2025-03-01 23:57:56",
+        "time": "0.05s",
+        "nodes": "1000",
+        "steps": "2",
+        "memory": "0.00MB"
+    }
+]

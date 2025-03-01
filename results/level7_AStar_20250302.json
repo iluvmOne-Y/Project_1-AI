@@ -1,0 +1,11 @@
+[
+    {
+        "algorithm": "AStar",
+        "level": 7,
+        "timestamp": "2025-03-02 01:33:07",
+        "time": "0.48s",
+        "nodes": "13046",
+        "steps": "243",
+        "memory": "6.12MB"
+    }
+]
