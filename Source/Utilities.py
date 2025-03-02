@@ -62,7 +62,7 @@ def MovePlayer(
             else:
                 newBoxes.update({box: int(boxes[box])})
 
-        return newPosition, newBoxes, newBoxes[boxNewPosition]
+        return newPosition, newBoxes, newBoxes[boxNewPosition] + 1
 
     return playerPosition, boxes, 0
 
