@@ -45,7 +45,7 @@ def DFS(level: _TYPES.Level) -> _TYPES.Solution:
     exploredStates = set()
     # Format: (playerPostion, boxes, path, pathCost)
     frontier = [
-        (playerPosition, boxes, [], 0),
+        (playerPosition, boxes, "", 0),
     ]  # A stack of the current state and the path to the current state
 
     # Iterate through the frontier
@@ -103,7 +103,7 @@ def DFS(level: _TYPES.Level) -> _TYPES.Solution:
                     (
                         newPlayerPosition,
                         newBoxes,
-                        currentPath + [moveType],
+                        currentPath + moveType,
                         currentCost + moveCost,
                     )
                 )

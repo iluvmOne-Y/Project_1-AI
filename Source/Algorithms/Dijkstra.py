@@ -51,7 +51,7 @@ def Dijkstra(level: _TYPES.Level) -> _TYPES.Solution:
 
     counter = count()  # Unique sequence to break ties consistently
     # Format: (cost, counter, path, playerPostion, boxes)
-    heappush(frontier, (0, next(counter), [], playerPosition, boxes))
+    heappush(frontier, (0, next(counter), "", playerPosition, boxes))
 
     while frontier:
         # Get the state with the lowest cost
@@ -99,7 +99,7 @@ def Dijkstra(level: _TYPES.Level) -> _TYPES.Solution:
                     (
                         currentCost + moveCost,
                         next(counter),
-                        currentPath + [moveType],
+                        currentPath + moveType,
                         newPlayerPosition,
                         newBoxes,
                     ),

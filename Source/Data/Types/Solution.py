@@ -17,7 +17,7 @@ class Solution:
         nodesExpanded: int,
         timeTaken: float,
         memoryUsage: float,
-        path: list[str],
+        path: str,
     ):
         """Initialize the Solution class.
 

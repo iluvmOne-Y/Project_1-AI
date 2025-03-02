@@ -52,7 +52,7 @@ def UCS(level: _TYPES.Level) -> _TYPES.Solution:
     # Format: (pathCost, path, playerPostion, boxes)
     heappush(
         frontier,
-        (0, [], playerPosition, boxes),
+        (0, "", playerPosition, boxes),
     )
 
     while frontier:
@@ -114,7 +114,7 @@ def UCS(level: _TYPES.Level) -> _TYPES.Solution:
                     frontier,
                     (
                         currentCost + moveCost,
-                        currentPath + [moveType],
+                        currentPath + moveType,
                         newPlayerPosition,
                         newBoxes,
                     ),

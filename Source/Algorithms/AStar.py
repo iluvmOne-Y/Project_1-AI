@@ -52,7 +52,7 @@ def AStar(level: _TYPES.Level) -> _TYPES.Solution:
     # Format: (weight, pathCost, path, playerPostion, boxes)
     heappush(
         frontier,
-        (0, 0, [], playerPosition, boxes),
+        (0, 0, "", playerPosition, boxes),
     )
 
     while frontier:
@@ -99,7 +99,9 @@ def AStar(level: _TYPES.Level) -> _TYPES.Solution:
                 # Calculate the weight of the new state
                 # by adding heuristic value to the true travel cost and the current path cost
                 weight = (
-                    currentCost + moveCost + CalculateHeuristicValue(newBoxes, switches)
+                    currentCost
+                    + moveCost
+                    + CalculateHeuristicValue(newPlayerPosition, newBoxes, switches)
                 )
 
                 # Loop through the frontier and find any states that match the new state
@@ -123,7 +125,7 @@ def AStar(level: _TYPES.Level) -> _TYPES.Solution:
                     (
                         weight,
                         currentCost + moveCost,
-                        currentPath + [moveType],
+                        currentPath + moveType,
                         newPlayerPosition,
                         newBoxes,
                     ),

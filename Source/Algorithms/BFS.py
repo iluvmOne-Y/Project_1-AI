@@ -50,14 +50,14 @@ def BFS(level: _TYPES.Level) -> _TYPES.Solution:
             0,
             time.time() - startTime,
             GetMemoryUsage() - startMemory,
-            [],
+            "",
         )
 
     # Initialize the explored set and the frontier
     exploredStates = set()
     # Format: (playerPostion, boxes, path, pathCost)
     frontier = [
-        (playerPosition, boxes, [], 0),
+        (playerPosition, boxes, "", 0),
     ]  # A queue of the current state and the path to the current state
 
     # Iterate through the frontier
@@ -107,7 +107,7 @@ def BFS(level: _TYPES.Level) -> _TYPES.Solution:
                         totalNodes,
                         time.time() - startTime,
                         GetMemoryUsage() - startMemory,
-                        currentPath + [moveType],
+                        currentPath + moveType,
                     )
 
                 # Append this new state to the end of the frontier
@@ -115,7 +115,7 @@ def BFS(level: _TYPES.Level) -> _TYPES.Solution:
                     (
                         newPlayerPosition,
                         newBoxes,
-                        currentPath + [moveType],
+                        currentPath + moveType,
                         currentCost + moveCost,
                     )
                 )
