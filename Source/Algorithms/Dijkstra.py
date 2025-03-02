@@ -6,10 +6,11 @@ from itertools import count
 from heapq import heappush
 
 # Custom modules
+from Controller.InterfaceController import DrawStats
 from Utilities import GetMemoryUsage, IsDeadlock, MovePlayer
 
 
-def Dijkstra(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
+def Dijkstra(level: _TYPES.Level) -> _TYPES.Solution:
     """A function to solve a level using the Dijkstra algorithm.
 
     ### Parameters
@@ -22,14 +23,15 @@ def Dijkstra(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
     totalNodes = 0
     startTime = time.time()
     startMemory = GetMemoryUsage()
-    peakMemory = 0 
+    peakMemory = 0
+
     # Get the moves and directions
-    directions = ["L", "R", "U", "D"]
+    directions = ["l", "r", "u", "d"]
     moves = {
-        "L": (-1, 0),
-        "R": (1, 0),
-        "U": (0, -1),
-        "D": (0, 1),
+        "l": (-1, 0),
+        "r": (1, 0),
+        "u": (0, -1),
+        "d": (0, 1),
     }
 
     # Get the inital state of the level
@@ -47,40 +49,42 @@ def Dijkstra(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
     exploredStates = set()
     frontier = (
         []
-    )  # A priority queue of the current state and the path to the current state
+    )  # A priority queue of states to explore orderd by their traversal cost
 
     counter = count()  # Unique sequence to break ties consistently
     # Format: (cost, counter, path, playerPostion, boxes)
-    heappush(frontier, (0, next(counter), [], playerPosition, boxes))
+    heappush(frontier, (0, next(counter), "", playerPosition, boxes))
 
     while frontier:
         # Get the state with the lowest cost
-        currentCost, _, currentPath, currentPlayerPosition, currentBoxes = frontier.pop(
-            0
+        currentPathCost, _, currentPath, currentPlayerPosition, currentBoxes = (
+            frontier.pop(0)
         )
-        currentMemory = GetMemoryUsage()-startMemory
-        peakMemory = max(currentMemory, peakMemory)
+
         # Increment the total number of nodes
         totalNodes += 1
-        if ui and totalNodes % 1000 == 0:
-            current_time = time.time() - startTime
-            current_memory = GetMemoryUsage()-startMemory 
-            stats = {
-                "path": "".join(currentPath),
-                "time": f"{current_time:.2f}s",
-                "nodes": str(totalNodes),
-                "steps": str(len(currentPath)),
-                "memory": f"{current_memory:.2f}MB"
-            }
-            ui.DrawStats(stats)
+
+        # Show stats every 5000 nodes
+        if totalNodes % 5000 == 0:
+            # Calculate the peak memory usage
+            peakMemory = max(peakMemory, GetMemoryUsage() - startMemory)
+
+            stats = _TYPES.StateStats(
+                currentPath,
+                totalNodes,
+                time.time() - startTime,
+                peakMemory,
+            )
+            DrawStats(stats)
+
         # Return solution and relevant datas if all switches are activated
         if all(switchPostion in currentBoxes for switchPostion in switches):
             return _TYPES.Solution(
                 len(currentPath),
-                currentCost,
+                currentPathCost - len(currentPath),
                 totalNodes,
                 time.time() - startTime,
-                peakMemory,
+                max(peakMemory, GetMemoryUsage() - startMemory),
                 currentPath,
             )
 
@@ -91,7 +95,7 @@ def Dijkstra(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
         # Add the current state to the explored set
         exploredStates.add((currentPlayerPosition, tuple(currentBoxes.keys())))
 
-        # Try each possible move
+        # Iterate through the directions
         for direction in directions:
             # Move the player in the given direction
             move = moves[direction]
@@ -99,21 +103,23 @@ def Dijkstra(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
                 level, currentPlayerPosition, currentBoxes, move, True
             )
 
-            # Check if the player can move in the given direction
-            if moveCost != 0:
-                # Get the correct move type
-                moveType = direction.lower() if moveCost == 1 else direction
+            # Return if the player can't move in the given direction
+            if moveCost == 0:
+                continue
 
-                # Add to priority queue
-                heappush(
-                    frontier,
-                    (
-                        currentCost + moveCost,
-                        next(counter),
-                        currentPath + [moveType],
-                        newPlayerPosition,
-                        newBoxes,
-                    ),
-                )
+            # Get the correct move type (lowercase for ordinary move, uppercase for box pushing action)
+            moveType = direction if moveCost == 1 else direction.upper()
+
+            # Add to frontier
+            heappush(
+                frontier,
+                (
+                    currentPathCost + moveCost,
+                    next(counter),
+                    currentPath + moveType,
+                    newPlayerPosition,
+                    newBoxes,
+                ),
+            )
 
     return None

@@ -5,10 +5,11 @@ import time as time
 from heapq import heappush
 
 # Custom modules
+from Controller.InterfaceController import DrawStats
 from Utilities import GetMemoryUsage, IsDeadlock, MovePlayer, CalculateHeuristicValue
 
 
-def GreedyBFS(level: _TYPES.Level, ui=None) -> _TYPES.Solution:
+def GreedyBFS(level: _TYPES.Level) -> _TYPES.Solution:
     """A function to solve a level using the Greedy Best-First Search algorithm.
 
     ### Parameters
@@ -22,13 +23,14 @@ def GreedyBFS(level: _TYPES.Level, ui=None) -> _TYPES.Solution:
     startTime = time.time()
     startMemory = GetMemoryUsage()
     peakMemory = 0
+
     # Get the moves and directions
-    directions = ["L", "R", "U", "D"]
+    directions = ["l", "r", "u", "d"]
     moves = {
-        "L": (-1, 0),
-        "R": (1, 0),
-        "U": (0, -1),
-        "D": (0, 1),
+        "l": (-1, 0),
+        "r": (1, 0),
+        "u": (0, -1),
+        "d": (0, 1),
     }
 
     # Get the initial state of the level
@@ -44,46 +46,44 @@ def GreedyBFS(level: _TYPES.Level, ui=None) -> _TYPES.Solution:
                 return None
 
     exploredStates = set()
-    frontier = []  # A priority queue based only on heuristic value
+    frontier = (
+        []
+    )  # A priority queue of states to explore ordered by their heuristic cost
 
-    # Calculate initial heuristic
-    initialHeuristic = CalculateHeuristicValue(playerPosition, boxes, switches)
-
-    # Initialize the frontier with (heuristic, path, playerPosition, boxes)
-    heappush(frontier, (initialHeuristic, [], playerPosition, boxes))
+    # Initialize the frontier
+    # Format: (heuristicCost, pathCost, path, playerPosition, boxes)
+    heappush(frontier, (0, 0, "", playerPosition, boxes))
 
     while frontier:
         # Get the state with the lowest heuristic value
-        currentHeuristic, currentPath, currentPlayerPosition, currentBoxes = frontier.pop(0)
-        
-        current_memory = GetMemoryUsage() - startMemory
-        peakMemory = max(peakMemory, current_memory)
+        _, currentPathCost, currentPath, currentPlayerPosition, currentBoxes = (
+            frontier.pop(0)
+        )
+
         # Increment the total number of nodes
         totalNodes += 1
-        if ui and totalNodes % 1000 == 0:
-            current_time = time.time() - startTime
-            current_memory = GetMemoryUsage() - startMemory
 
-            stats = {
-                "path": "".join(currentPath),
-                "time": f"{current_time:.2f}s",
-                "nodes": str(totalNodes),
-                "steps": str(len(currentPath)),
-                "memory": f"{current_memory:.2f}MB"
-            }
-            ui.DrawStats(stats)
+        # Show stats every 5000 nodes
+        if totalNodes % 5000 == 0:
+            # Calculate the peak memory usage
+            peakMemory = max(peakMemory, GetMemoryUsage() - startMemory)
+
+            stats = _TYPES.StateStats(
+                currentPath,
+                totalNodes,
+                time.time() - startTime,
+                peakMemory,
+            )
+            DrawStats(stats)
 
         # Return solution if all switches are activated
         if all(switchPosition in currentBoxes for switchPosition in switches):
-            # Calculate total cost of the path
-            totalCost = sum(1 if move.islower() else int(currentBoxes.get((0, 0), 1)) for move in currentPath)
-            
             return _TYPES.Solution(
                 len(currentPath),
-                totalCost,
+                currentPathCost - len(currentPath),
                 totalNodes,
                 time.time() - startTime,
-                peakMemory ,
+                max(peakMemory, GetMemoryUsage() - startMemory),
                 currentPath,
             )
 
@@ -94,9 +94,9 @@ def GreedyBFS(level: _TYPES.Level, ui=None) -> _TYPES.Solution:
         # Add the current state to the explored set
         exploredStates.add((currentPlayerPosition, tuple(currentBoxes.keys())))
 
-        # Try all possible moves
-        nextStates = []
+        # Iterate through the directions
         for direction in directions:
+            # Move the player in the given direction
             move = moves[direction]
             newPlayerPosition, newBoxes, moveCost = MovePlayer(
                 level, currentPlayerPosition, currentBoxes, move, True
@@ -110,19 +110,20 @@ def GreedyBFS(level: _TYPES.Level, ui=None) -> _TYPES.Solution:
             if (newPlayerPosition, tuple(newBoxes.keys())) in exploredStates:
                 continue
 
-            # Get move type (lowercase for player move, uppercase for box push)
-            moveType = direction.lower() if moveCost == 1 else direction
-            
-            # Calculate heuristic for the new state
-            newHeuristic = CalculateHeuristicValue(newPlayerPosition, newBoxes, switches)
-            
-            # Add to list of next states
-            nextStates.append((newHeuristic, currentPath + [moveType], newPlayerPosition, newBoxes))
-        
-        # Sort next states by heuristic and add to frontier
-        nextStates.sort(key=lambda x: x[0])
-        for state in nextStates:
-            heappush(frontier, state)
+            # Get the correct move type (lowercase for ordinary move, uppercase for box pushing action)
+            moveType = direction if moveCost == 1 else direction.upper()
+
+            # Add to frontier
+            heappush(
+                frontier,
+                (
+                    CalculateHeuristicValue(newPlayerPosition, newBoxes, switches),
+                    currentPathCost + moveCost,
+                    currentPath + moveType,
+                    newPlayerPosition,
+                    newBoxes,
+                ),
+            )
 
     # Return None if no solution is found
     return None

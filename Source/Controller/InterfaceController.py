@@ -9,32 +9,11 @@ import pathlib as pathlib
 # External modules
 import pygame as pygame
 
-# Custom modules
-from Algorithms.BFS import BFS
-from Algorithms.DFS import DFS
-from Algorithms.UCS import UCS
-from Algorithms.AStar import AStar
-from Algorithms.Dijkstra import Dijkstra
-from Algorithms.GreedyBFS import GreedyBFS
 # Get the fonts
 HeaderFont = "Data/Assets/Fonts/Header-font3.otf"
 TextFont1 = "Data/Assets/Fonts/Text-font2.ttf"
 TextFont2 = "Data/Assets/Fonts/Text-font1.ttf"
 
-
-# Get the number of input files
-inputNumber = 0
-
-currentDirectory = pathlib.Path("Inputs")
-for item in currentDirectory.iterdir():
-    if item.is_file() and item.name[:5] == "input" and item.suffix == ".txt":
-        inputNumber += 1
-
-# Initialize the levels
-levels: list = [_TYPES.Level(i) for i in range(1, inputNumber + 1)]
-
-# Get the algorithms
-algorithms: list = [BFS, DFS, UCS, AStar, Dijkstra, GreedyBFS]
 
 # Set the display to be centered
 os.environ["SDL_VIDEO_CENTERED"] = "1"
@@ -72,10 +51,21 @@ sprites["*"] = pygame.image.load(
 # Get the size of the sprites
 imageSize = sprites["#"].get_width()
 
+# Get the number of input files
+inputNumber = 0
+
+currentDirectory = pathlib.Path("Inputs")
+for item in currentDirectory.iterdir():
+    if item.is_file() and item.name[:5] == "input" and item.suffix == ".txt":
+        inputNumber += 1
+
+# Initialize the levels
+levels: list = [_TYPES.Level(i) for i in range(1, inputNumber + 1)]
+
 # Set the screen size
 screenSize = (
-    max(level.matrixSize[0] for level in levels) * imageSize + 200,
-    max(level.matrixSize[1] for level in levels) * imageSize + 350,
+    max(max(level.matrixSize[0] for level in levels) * imageSize + 250, screenSize[0]),
+    max(max(level.matrixSize[1] for level in levels) * imageSize + 400, screenSize[1]),
 )
 
 # Quit the display and reinitialize it
@@ -91,8 +81,8 @@ screenSurface.fill((255, 255, 255))
 pygame.display.update()
 
 # Set the preview offset
-previewOffset = screenSize[1] / 3 + 20
-solvingOffset = 200
+previewOffset = screenSize[1] / 3
+solvingOffset = screenSize[1] / 3 - 45
 
 
 def DrawText(
@@ -148,12 +138,12 @@ def DrawMatrix(matrix: list, matrixSize: tuple, offsetY: int = solvingOffset):
     pygame.display.update()
 
 
-def DrawSelectionScreen(levelSelected: int, algorithmSelected: int):
+def DrawSelectionScreen(level: _TYPES.Level, algorithmName: str):
     """Draw the selection screen.
 
     ### Parameters
-    - levelSelected: The selected level.
-    - algorithmSelected: The selected algorithm.
+    - level: The selected level.
+    - algorithmName: The name of the algorithm.
     """
     # Clear the screen
     screenSurface.fill((0, 0, 0))
@@ -188,7 +178,7 @@ def DrawSelectionScreen(levelSelected: int, algorithmSelected: int):
     )
 
     # Draw the border box for the current level
-    levelText = "Level " + str(levels[levelSelected].number)
+    levelText = "Level " + str(level.number)
     font = pygame.font.Font(None, 40)
     textSurface = font.render(levelText, True, (255, 255, 255))
     textRect = textSurface.get_rect(center=(screenSize[0] / 2, 200))
@@ -198,7 +188,7 @@ def DrawSelectionScreen(levelSelected: int, algorithmSelected: int):
     screenSurface.blit(textSurface, centeredTextRect)
 
     # Draw the border box for the current algorithm
-    algorithmText = algorithms[algorithmSelected].__name__
+    algorithmText = algorithmName
     font = pygame.font.Font(None, 44)
     textSurface = font.render(algorithmText, True, (255, 255, 255))
     textRect = textSurface.get_rect(center=(screenSize[0] / 2, screenSize[1] - 70))
@@ -209,85 +199,21 @@ def DrawSelectionScreen(levelSelected: int, algorithmSelected: int):
 
     # Draw the level
     DrawMatrix(
-        levels[levelSelected].getMatrix(),
-        levels[levelSelected].matrixSize,
+        level.getMatrix(),
+        level.matrixSize,
         previewOffset,
     )
 
     pygame.display.flip()
 
 
-def DrawSelectionScreen(levelSelected: int, algorithmSelected: int):
-    """Draw the selection screen.
+def DrawSelectionMenu(
+    algorithms: list[_TYPES.Algorithm],
+) -> tuple[_TYPES.Level, _TYPES.Algorithm]:
+    """Draw the combined algorithm and level selection menu.
 
     ### Parameters
-    - levelSelected: The selected level.
-    - algorithmSelected: The selected algorithm.
-    """
-    # Clear the screen
-    screenSurface.fill((0, 0, 0))
-    # Draw background
-    background = pygame.image.load(
-        os.path.join("Data/Assets/Images/Background/background2.png")
-    )
-    screenSurface.blit(background, (0, 0))
-
-    # Try to load and draw background
-    try:
-        background = pygame.image.load("Data/Assets/Images/Background/background2.png")
-        screenSurface.blit(background, (0, 0))
-    except (pygame.error, FileNotFoundError):
-        # If background image is missing, draw a gradient or pattern
-        for y in range(0, screenSize[1], 2):
-            color = (max(0, 40 - y // 10), 0, max(0, 20 - y // 20))
-            pygame.draw.line(screenSurface, color, (0, y), (screenSize[0], y))
-
-    # Draw game's title
-    DrawText(
-        "Ares' Adventure", (screenSize[0] / 2, 90), 50, (255, 255, 255), HeaderFont
-    )
-
-    # Draw the level selection title
-    DrawText(
-        "Select your level",
-        (screenSize[0] / 2, 150),
-        29,
-        (255, 123, 255),
-        TextFont2,
-    )
-
-    # Draw the border box for the current level
-    levelText = "Level " + str(levels[levelSelected].number)
-    font = pygame.font.Font(None, 40)
-    textSurface = font.render(levelText, True, (255, 255, 255))
-    textRect = textSurface.get_rect(center=(screenSize[0] / 2, 200))
-    borderRect = textRect.inflate(20, 20)
-    pygame.draw.rect(screenSurface, (255, 255, 255), borderRect, 4)
-    centeredTextRect = textSurface.get_rect(center=borderRect.center)
-    screenSurface.blit(textSurface, centeredTextRect)
-
-    # Draw the border box for the current algorithm
-    algorithmText = algorithms[algorithmSelected].__name__
-    font = pygame.font.Font(None, 44)
-    textSurface = font.render(algorithmText, True, (255, 255, 255))
-    textRect = textSurface.get_rect(center=(screenSize[0] / 2, screenSize[1] - 60))
-    borderRect = textRect.inflate(20, 20)
-    pygame.draw.rect(screenSurface, (255, 255, 255), borderRect, 4)
-    centeredTextRect = textSurface.get_rect(center=borderRect.center)
-    screenSurface.blit(textSurface, centeredTextRect)
-
-    # Draw the level
-    DrawMatrix(
-        levels[levelSelected].getMatrix(),
-        levels[levelSelected].matrixSize,
-        previewOffset,
-    )
-
-    pygame.display.flip()
-
-
-def DrawSelectionMenu() -> tuple[_TYPES.Level, _TYPES.Algorithm]:
-    """Draw the combined algorithm and level selection menu.
+    - algorithms: The list of algorithms to select from.
 
     ### Returns
     - tuple: The selected level and algorithm.
@@ -297,7 +223,7 @@ def DrawSelectionMenu() -> tuple[_TYPES.Level, _TYPES.Algorithm]:
     algorithmSelected: int = 0
 
     # Draw the selection screen
-    DrawSelectionScreen(levelSelected, algorithmSelected)
+    DrawSelectionScreen(levels[levelSelected], algorithms[algorithmSelected].__name__)
 
     while True:
         # Track movement events
@@ -307,19 +233,27 @@ def DrawSelectionMenu() -> tuple[_TYPES.Level, _TYPES.Algorithm]:
                 # Update level selected with left and right key
                 if event.key == pygame.K_LEFT:
                     levelSelected = (levelSelected - 1) % len(levels)
-                    DrawSelectionScreen(levelSelected, algorithmSelected)
+                    DrawSelectionScreen(
+                        levels[levelSelected], algorithms[algorithmSelected].__name__
+                    )
 
                 elif event.key == pygame.K_RIGHT:
                     levelSelected = (levelSelected + 1) % len(levels)
-                    DrawSelectionScreen(levelSelected, algorithmSelected)
+                    DrawSelectionScreen(
+                        levels[levelSelected], algorithms[algorithmSelected].__name__
+                    )
 
                 # Update algorithm selected with up and down key
                 elif event.key == pygame.K_UP:
                     algorithmSelected = (algorithmSelected - 1) % len(algorithms)
-                    DrawSelectionScreen(levelSelected, algorithmSelected)
+                    DrawSelectionScreen(
+                        levels[levelSelected], algorithms[algorithmSelected].__name__
+                    )
                 elif event.key == pygame.K_DOWN:
                     algorithmSelected = (algorithmSelected + 1) % len(algorithms)
-                    DrawSelectionScreen(levelSelected, algorithmSelected)
+                    DrawSelectionScreen(
+                        levels[levelSelected], algorithms[algorithmSelected].__name__
+                    )
 
                 # Return the selected level and algorithm
                 elif event.key == pygame.K_RETURN:
@@ -373,51 +307,49 @@ def DrawSelectionMenu() -> tuple[_TYPES.Level, _TYPES.Algorithm]:
                 return None
 
 
-def DrawSuccessScreen(level: _TYPES.Level, algorithmName: str,solution: _TYPES.Solution= None):
+def DrawSuccessScreen(
+    level: _TYPES.Level, algorithmName: str, solution: _TYPES.Solution
+):
     """Draw the success screen when a level is completed.
 
     ### Parameters
     - level: The level that is completed.
     - algorithmName: The name of the algorithm used to solve the level.
+    - solution: The solution to the level.
     """
     # Clear the screen
     screenSurface.fill((0, 0, 0))
 
     # Redraw the background
-    DrawText("Level " + str(level.number) + ": Solved!", (screenSize[0] / 2, 40), 40)
+    DrawText("Level " + str(level.number), (screenSize[0] / 2, 50), 50)
     DrawText(
         "Algorithm: " + algorithmName,
-        (screenSize[0] / 2, 60),
-        40,
+        (screenSize[0] / 2, 95),
+        45,
     )
 
     #
-    DrawText("Press 'Space' to (un)pause", (screenSize[0] / 2,100),30 )
+    DrawText("Press 'Space' to (un)pause", (screenSize[0] / 2, 130), 30)
     DrawText(
         "Press 'Left'/'Right' to change matrix to previous/next state",
-        (screenSize[0] / 2, 120),30
+        (screenSize[0] / 2, 150),
+        30,
     )
-    DrawText(
-        "Press 'R' to restart",
-        (screenSize[0] / 2, 140),30
-    )
-    DrawText(
-        "Press 'M' to return to menu",
-        (screenSize[0] / 2, 160),30
-    )
+    DrawText("Press 'R' to restart", (screenSize[0] / 2, 170), 30)
+    DrawText("Press 'M' to return to menu", (screenSize[0] / 2, 190), 30)
 
-    # Create an instance of this Level and draw it
+    # Redraw the matrix
     DrawMatrix(level.getMatrix(), level.matrixSize, solvingOffset)
-    if solution:
-        stats = {
-            "path": "".join(solution.path),
-            "time": f"{solution.timeTaken:.2f}s",
-            "nodes": str(solution.nodesExpanded),
-            "steps": str(solution.steps),
-            "memory": f"{solution.memoryUsage:.2f}MB",
-            "status": "Solved"
-        }
-        DrawStats(stats)
+
+    # Draw the solution statistics
+    stats = _TYPES.StateStats(
+        solution.path,
+        solution.nodesExpanded,
+        solution.timeTaken,
+        solution.memoryUsage,
+    )
+    DrawStats(stats)
+
 
 def DrawFailScreen(level: _TYPES.Level, algorithmName: str):
     """Draw the success screen when a level is completed.
@@ -430,10 +362,10 @@ def DrawFailScreen(level: _TYPES.Level, algorithmName: str):
     screenSurface.fill((0, 0, 0))
 
     # Redraw the background
-    DrawText("Level " + str(level.number), (screenSize[0] / 2, 60), 50)
+    DrawText("Level " + str(level.number), (screenSize[0] / 2, 50), 50)
     DrawText(
         "Algorithm: " + algorithmName,
-        (screenSize[0] / 2, 115),
+        (screenSize[0] / 2, 95),
         45,
     )
 
@@ -446,100 +378,87 @@ def DrawFailScreen(level: _TYPES.Level, algorithmName: str):
 
     # Create an instance of this Level and draw it
     DrawMatrix(level.getMatrix(), level.matrixSize, solvingOffset)
-    
-def DrawStats(stats):
-    """Draw the algorithm statistics on the screen."""
+
+
+def DrawStats(stats: _TYPES.StateStats):
+    """Draw the state statistics on the screen.
+
+    ### Parameters
+    - stats: The statistics to be displayed
+    """
     # Clear the stats area with a semi-transparent black
-    stats_area_width = screenSize[0] * 0.98  # 98% of screen width
-    stats_area_height = screenSize[1] * 0.15  # 15% of screen height
-    stats_area_x = (screenSize[0] - stats_area_width) / 2  # Centered horizontally
-    stats_area_y = screenSize[1] - stats_area_height - 20  # Position at bottom with 10px padding
-    
+    statsAreaWidth = screenSize[0] * 0.98  # 98% of screen width
+    statsAreaHeight = screenSize[1] * 0.15  # 15% of screen height
+    statsAreaOffsetX = (screenSize[0] - statsAreaWidth) / 2  # Centered horizontally
+    statsAreaOffsetY = (
+        screenSize[1] - statsAreaHeight - 20
+    )  # Position at bottom with 10px padding
+
     # Clear the stats area with a semi-transparent black
-    stats_surface = pygame.Surface((stats_area_width, stats_area_height), pygame.SRCALPHA)
-    stats_surface.fill((0, 0, 0, 180))  # Semi-transparent black
-    screenSurface.blit(stats_surface, (stats_area_x, stats_area_y))
-    
-    # Extract the core stats (to display on the same line)
-    time_value = stats.get('time', '0.00s')
-    nodes_value = stats.get('nodes', '0')
-    steps_value = stats.get('steps', '0')
-    memory_value = stats.get('memory', '0.00MB')
-    path_value = stats.get('path', '')
-    status_value = stats.get('status', '')
-    
+    statsSurface = pygame.Surface((statsAreaWidth, statsAreaHeight), pygame.SRCALPHA)
+    statsSurface.fill((0, 0, 0, 255))  # Pitch black
+    screenSurface.blit(statsSurface, (statsAreaOffsetX, statsAreaOffsetY))
+
     # First display the path at the top if it exists
-    if path_value:
+    if stats.path:
         # Position path at top of stats area
-        path_y = stats_area_y + stats_area_height * 0.25
-        
-        # Calculate max characters based on screen width
-        chars_per_line = max(40, int(stats_area_width / 10))
-        path_display = path_value[:chars_per_line]
-        
+        pathOffsetY = statsAreaOffsetY + statsAreaHeight * 0.25
+
         # Add ellipsis if path is longer than what we can show
-        if len(path_value) > chars_per_line:
-            path_display = path_display[:-3] + "..."
-        
+        maxCharPerLine = min(40, int(statsAreaWidth / 10))
+        pathDisplay = stats.path
+
+        if len(stats.path) > maxCharPerLine:
+            pathDisplay = pathDisplay[: maxCharPerLine - 3] + "..."
+
         # Draw the path with larger font size
-        path_font = pygame.font.Font(None, 30)
-        path_text = f"Path: {path_display}"
-        path_surface = path_font.render(path_text, True, (255, 255, 255))
-        path_rect = path_surface.get_rect(center=(screenSize[0]/2, path_y))
-        screenSurface.blit(path_surface, path_rect)
-    
+        font = pygame.font.Font(None, 30)
+        statText = f"Path: {pathDisplay}"
+        statSurface = font.render(statText, True, (255, 255, 255))
+        statRect = statSurface.get_rect(center=(screenSize[0] / 2, pathOffsetY))
+        screenSurface.blit(statSurface, statRect)
+
     # Display the core stats on a single line at the bottom
-    bottom_stats_y = stats_area_y + stats_area_height * 0.6
-    
+    bottomStatsY = statsAreaOffsetY + statsAreaHeight * 0.6
+
     # Calculate horizontal positions for each stat
-    stat_width = stats_area_width / 4
-    time_x = stats_area_x + stat_width/2
-    nodes_x = stats_area_x + stat_width + stat_width/2
-    steps_x = stats_area_x + stat_width*2 + stat_width/2
-    memory_x = stats_area_x + stat_width*3 + stat_width/2
-    
+    statWidth = statsAreaWidth / 4
+    timeX = statsAreaOffsetX + statWidth / 2
+    nodesX = statsAreaOffsetX + statWidth + statWidth / 2
+    stepsX = statsAreaOffsetX + statWidth * 2 + statWidth / 2
+    memoryX = statsAreaOffsetX + statWidth * 3 + statWidth / 2
+
     # Draw the core stats with custom colors
-    font_size = 40
-    
+    fontSize = 40
+    font = pygame.font.Font(None, fontSize)
+
     # Time stat (green)
-    time_font = pygame.font.Font(None, font_size)
-    time_text = f"Time: {time_value}"
-    time_surface = time_font.render(time_text, True, (100, 255, 100))
-    time_rect = time_surface.get_rect(center=(time_x, bottom_stats_y))
-    screenSurface.blit(time_surface, time_rect)
-    
+    statText = f"Time: {stats.timeTaken:.2f}s"
+    statSurface = font.render(statText, True, (100, 255, 100))
+    statRect = statSurface.get_rect(center=(timeX, bottomStatsY))
+    screenSurface.blit(statSurface, statRect)
+
     # Nodes stat (blue)
-    nodes_font = pygame.font.Font(None, font_size)
-    nodes_text = f"Nodes: {nodes_value}"
-    nodes_surface = nodes_font.render(nodes_text, True, (100, 100, 255))
-    nodes_rect = nodes_surface.get_rect(center=(nodes_x, bottom_stats_y))
-    screenSurface.blit(nodes_surface, nodes_rect)
-    
+    statText = f"Nodes: {stats.nodesExpanded}"
+    statSurface = font.render(statText, True, (100, 100, 255))
+    statRect = statSurface.get_rect(center=(nodesX, bottomStatsY))
+    screenSurface.blit(statSurface, statRect)
+
     # Steps stat (red)
-    steps_font = pygame.font.Font(None, font_size)
-    steps_text = f"Steps: {steps_value}"
-    steps_surface = steps_font.render(steps_text, True, (255, 100, 100))
-    steps_rect = steps_surface.get_rect(center=(steps_x, bottom_stats_y))
-    screenSurface.blit(steps_surface, steps_rect)
-    
+    statText = f"Steps: {len(stats.path)}"
+    statSurface = font.render(statText, True, (255, 100, 100))
+    statRect = statSurface.get_rect(center=(stepsX, bottomStatsY))
+    screenSurface.blit(statSurface, statRect)
+
     # Memory stat (yellow)
-    memory_font = pygame.font.Font(None, font_size)
-    memory_text = f"Memory: {memory_value}"
-    memory_surface = memory_font.render(memory_text, True, (255, 255, 100))
-    memory_rect = memory_surface.get_rect(center=(memory_x, bottom_stats_y))
-    screenSurface.blit(memory_surface, memory_rect)
-    
-    # Add status if present
-    if status_value:
-        status_y = stats_area_y + stats_area_height * 0.9
-        status_font = pygame.font.Font(None, 36)
-        status_text = f"Status: {status_value}"
-        status_surface = status_font.render(status_text, True, (255, 255, 255))
-        status_rect = status_surface.get_rect(center=(screenSize[0]/2, status_y))
-        screenSurface.blit(status_surface, status_rect)
-    
+    statText = f"Memory: {stats.memoryUsage:.2f}MB"
+    statSurface = font.render(statText, True, (255, 255, 100))
+    statRect = statSurface.get_rect(center=(memoryX, bottomStatsY))
+    screenSurface.blit(statSurface, statRect)
+
     # Update the display
     pygame.display.update()
+
 
 __all__ = [
     "DrawText",
