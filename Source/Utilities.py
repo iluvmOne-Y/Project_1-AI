@@ -154,6 +154,8 @@ def CalculateHeuristicValue(playerPosition: tuple, boxes: dict, switches: list) 
             )
             * boxes[box]
         )
+
+        # Update the heuristic distances and the heuristic value
         heuristicDistances.update({box: mahattanDistance})
         heuristicValue += mahattanDistance
 
@@ -164,6 +166,7 @@ def CalculateHeuristicValue(playerPosition: tuple, boxes: dict, switches: list) 
         ):
             boxWithMinDistance = box
 
+    # Return the heuristic value with the Manhattan distance of the box with the minimum distance to the player
     return (
         heuristicValue
         + abs(boxWithMinDistance[0] - playerPosition[0])
