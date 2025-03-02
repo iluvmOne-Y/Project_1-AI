@@ -22,7 +22,7 @@ def Dijkstra(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
     totalNodes = 0
     startTime = time.time()
     startMemory = GetMemoryUsage()
-
+    peakMemory = 0 
     # Get the moves and directions
     directions = ["L", "R", "U", "D"]
     moves = {
@@ -58,12 +58,13 @@ def Dijkstra(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
         currentCost, _, currentPath, currentPlayerPosition, currentBoxes = frontier.pop(
             0
         )
-
+        currentMemory = GetMemoryUsage()-startMemory
+        peakMemory = max(currentMemory, peakMemory)
         # Increment the total number of nodes
         totalNodes += 1
         if ui and totalNodes % 1000 == 0:
             current_time = time.time() - startTime
-            current_memory = GetMemoryUsage() - startMemory
+            current_memory = GetMemoryUsage()-startMemory 
             stats = {
                 "path": "".join(currentPath),
                 "time": f"{current_time:.2f}s",
@@ -79,7 +80,7 @@ def Dijkstra(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
                 currentCost,
                 totalNodes,
                 time.time() - startTime,
-                GetMemoryUsage() - startMemory,
+                peakMemory,
                 currentPath,
             )
 

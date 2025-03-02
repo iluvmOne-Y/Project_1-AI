@@ -15,7 +15,7 @@ from Algorithms.DFS import DFS
 from Algorithms.UCS import UCS
 from Algorithms.AStar import AStar
 from Algorithms.Dijkstra import Dijkstra
-
+from Algorithms.GreedyBFS import GreedyBFS
 # Get the fonts
 HeaderFont = "Data/Assets/Fonts/Header-font3.otf"
 TextFont1 = "Data/Assets/Fonts/Text-font2.ttf"
@@ -34,7 +34,7 @@ for item in currentDirectory.iterdir():
 levels: list = [_TYPES.Level(i) for i in range(1, inputNumber + 1)]
 
 # Get the algorithms
-algorithms: list = [BFS, DFS, UCS, AStar, Dijkstra]
+algorithms: list = [BFS, DFS, UCS, AStar, Dijkstra, GreedyBFS]
 
 # Set the display to be centered
 os.environ["SDL_VIDEO_CENTERED"] = "1"

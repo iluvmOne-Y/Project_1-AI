@@ -21,7 +21,7 @@ def UCS(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
     totalNodes = 0
     startTime = time.time()
     startMemory = GetMemoryUsage()
-
+    peakMemory = 0
     # Get the moves and directions
     directions = ["L", "R", "U", "D"]
     moves = {
@@ -59,6 +59,8 @@ def UCS(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
         # Get the current state
         currentCost, currentPath, currentPlayerPosition, currentBoxes = frontier.pop(0)
 
+        current_memory = GetMemoryUsage() - startMemory
+        peakMemory = max(peakMemory, current_memory)
         # Increment the total number of nodes
         totalNodes += 1
         if ui and totalNodes % 1000 == 0:
@@ -79,7 +81,7 @@ def UCS(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
                 currentCost,
                 totalNodes,
                 time.time() - startTime,
-                GetMemoryUsage() - startMemory,
+                peakMemory,
                 currentPath,
             )
 

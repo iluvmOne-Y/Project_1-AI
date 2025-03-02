@@ -21,7 +21,7 @@ def AStar(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
     totalNodes = 0
     startTime = time.time()
     startMemory = GetMemoryUsage()
-
+    peakMemory = 0
     # Get the moves and directions
     directions = ["L", "R", "U", "D"]
     moves = {
@@ -60,7 +60,8 @@ def AStar(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
         _, currentCost, currentPath, currentPlayerPosition, currentBoxes = frontier.pop(
             0
         )
-
+        current_memory = GetMemoryUsage() - startMemory
+        peakMemory = max(peakMemory, current_memory)
         # Increment the total number of nodes
         totalNodes += 1
         if ui and totalNodes % 1000 == 0:
@@ -82,7 +83,7 @@ def AStar(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
                 currentCost,
                 totalNodes,
                 time.time() - startTime,
-                GetMemoryUsage() - startMemory,
+                peakMemory,
                 currentPath,
             )
                 
@@ -112,7 +113,7 @@ def AStar(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
                 # Calculate the weight of the new state
                 # by adding heuristic value to the true travel cost and the current path cost
                 weight = (
-                    currentCost + moveCost + CalculateHeuristicValue(newBoxes, switches)
+                    currentCost + moveCost + CalculateHeuristicValue(playerPosition,newBoxes, switches)
                 )
 
                 # Loop through the frontier and find any states that match the new state

@@ -20,7 +20,7 @@ def DFS(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
     totalNodes = 0
     startTime = time.time()
     startMemory = GetMemoryUsage()
-
+    peakMemory = 0
     # Get the moves and directions
     directions = ["L", "R", "U", "D"]
     moves = {
@@ -52,7 +52,8 @@ def DFS(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
     while frontier:
         # Get the current state
         currentPlayerPosition, currentBoxes, currentPath, currentCost = frontier.pop()
-
+        current_memory = GetMemoryUsage() - startMemory
+        peakMemory = max(peakMemory, current_memory)
         # Increment the total number of nodes
         totalNodes += 1
         if ui and totalNodes % 1000 == 0:
@@ -73,7 +74,7 @@ def DFS(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
                 currentCost,
                 totalNodes,
                 time.time() - startTime,
-                GetMemoryUsage() - startMemory,
+                peakMemory,
                 currentPath,
             )
 
