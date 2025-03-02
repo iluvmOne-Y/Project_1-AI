@@ -72,7 +72,7 @@ def AStar(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
                 "time": f"{current_time:.2f}s",
                 "nodes": str(totalNodes),
                 "steps": str(len(currentPath)),
-                "memory": f"{current_memory:.2f}MB"
+                "memory": f"{peakMemory:.2f}MB"
             }
             ui.DrawStats(stats)
             
@@ -113,7 +113,7 @@ def AStar(level: _TYPES.Level,ui=None) -> _TYPES.Solution:
                 # Calculate the weight of the new state
                 # by adding heuristic value to the true travel cost and the current path cost
                 weight = (
-                    currentCost + moveCost + CalculateHeuristicValue(playerPosition,newBoxes, switches)
+                    currentCost + moveCost + CalculateHeuristicValue(newPlayerPosition,newBoxes, switches)
                 )
 
                 # Loop through the frontier and find any states that match the new state
