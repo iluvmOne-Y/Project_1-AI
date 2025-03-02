@@ -174,7 +174,7 @@ def CalculateHeuristicValue(playerPosition: tuple, boxes: dict, switches: list) 
     )
 
 
-def GetMemoryUsage():
+def GetMemoryUsage() -> int:
     """Get current memory usage in MB
 
     ### Returns
