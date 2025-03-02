@@ -72,7 +72,7 @@ class Level:
         for i in range(0, len(self.matrix)):
             # Iterate all columns
             for k in range(0, len(self.matrix[i]) - 1):
-                if self.matrix[i][k] == "@" or self.matrix[i][k] == "+":
+                if self.matrix[i][k] == "@":
                     self.playerPosition = (k, i)
                     self.matrix[i][k] = " " if self.matrix[i][k] == "@" else "."
                 elif self.matrix[i][k] == "$":
@@ -80,6 +80,10 @@ class Level:
                     self.matrix[i][k] = " "
                 elif self.matrix[i][k] == ".":
                     self.switches.append((k, i))
+                elif self.matrix[i][k] == "+":
+                    self.playerPosition = (k, i)
+                    self.switches.append((k, i))
+                    self.matrix[i][k] = "."
                 elif self.matrix[i][k] == "*":
                     self.boxes.update({(k, i): int(weights[len(self.boxes)])})
                     self.switches.append((k, i))
