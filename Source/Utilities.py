@@ -62,7 +62,7 @@ def MovePlayer(
             else:
                 newBoxes.update({box: int(boxes[box])})
 
-        return newPosition, newBoxes, newBoxes[boxNewPosition]
+        return newPosition, newBoxes, newBoxes[boxNewPosition] + 1
 
     return playerPosition, boxes, 0
 
@@ -173,7 +173,8 @@ def CalculateHeuristicValue(playerPosition: tuple, boxes: dict, switches: list) 
         + abs(boxWithMinDistance[1] - playerPosition[1])
     )
 
-def GetMemoryUsage():
+
+def GetMemoryUsage() -> int:
     """Get current memory usage in MB
 
     ### Returns
