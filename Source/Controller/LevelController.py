@@ -80,8 +80,7 @@ def SolveLevel(
     - algorithm: The algorithm to solve the level with.
     """
     # Solve the level
-    solution: _TYPES.Solution = algorithm(level,InterfaceController)
-    
+    solution: _TYPES.Solution = algorithm(level)
 
     # Return if no solution is found
     if not solution:
@@ -102,10 +101,11 @@ def SolveLevel(
                     return
 
         return
-    
+
     SaveSolutionToFile(level, algorithm.__name__, solution)
+
     # Draw the success screen when the level is completed
-    InterfaceController.DrawSuccessScreen(level, algorithm.__name__,solution)
+    InterfaceController.DrawSuccessScreen(level, algorithm.__name__, solution)
 
     moves = {
         "l": (-1, 0),
@@ -251,23 +251,24 @@ def SolveLevel(
 
             # Check if the index is out of bounds
             if index >= len(solutionStates):
-                # Reset the index and pause the game
-                index = -1
+                # Set the index to the last maze and pause the game
+                index = len(solutionStates) - 1
                 paused = True
             else:
                 InterfaceController.DrawMatrix(solutionStates[index], level.matrixSize)
                 pygame.time.wait(200)
 
 
-
-def SaveSolutionToFile(level: _TYPES.Level, algorithmName: str, solution: _TYPES.Solution):
+def SaveSolutionToFile(
+    level: _TYPES.Level, algorithmName: str, solution: _TYPES.Solution
+):
     """Save the solution statistics to an output file according to the specified format.
-    
+
     Format:
     - Line 1: Algorithm name
     - Line 2: Statistics (Steps, Weight, Node, Time (ms), Memory (MB))
     - Line 3: Solution path as a string
-    
+
     ### Parameters
     - level: The solved level
     - algorithmName: Name of the algorithm used
@@ -275,31 +276,33 @@ def SaveSolutionToFile(level: _TYPES.Level, algorithmName: str, solution: _TYPES
     """
     # Format level number with zero padding
     formatted_level = f"{level.number:02d}"  # 01, 02, etc.
-    
+
     # Generate filename based on required format
-    filename = f"outputs/output-{formatted_level}.txt"
-    
+    filename = f"Outputs/output-{formatted_level}.txt"
+
     # Check if file exists - if so, we'll append to it rather than overwrite
     file_exists = os.path.exists(filename)
-    
+
     # Open file in append mode if it exists, otherwise create new
     with open(filename, "a" if file_exists else "w") as f:
         # If this is a new file, no newline needed
         # If we're appending, add a newline before the algorithm name
         if file_exists:
             f.write("\n")
-            
+
         # Line 1: Algorithm name
         f.write(f"{algorithmName}\n")
-        
+
         # Line 2: Statistics (convert time to milliseconds)
         time_ms = solution.timeTaken * 1000  # Convert seconds to milliseconds
         f.write(f"Steps: {solution.steps}, Weight: {solution.weight}, ")
         f.write(f"Node: {solution.nodesExpanded}, Time (ms): {time_ms:.2f}, ")
         f.write(f"Memory (MB): {solution.memoryUsage:.2f}\n")
-        
+
         # Line 3: Solution path as a string
         f.write(f"{''.join(solution.path)}")
-        
+
     print(f"Solution saved to {filename}")
+
+
 __all__ = ["InitLevel"]
