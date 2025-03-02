@@ -7,5 +7,14 @@
         "nodes": "977",
         "steps": "69",
         "memory": "0.39MB"
+    },
+    {
+        "algorithm": "BFS",
+        "level": 4,
+        "timestamp": "2025-03-02 16:18:29",
+        "time": "0.04s",
+        "nodes": "977",
+        "steps": "69",
+        "memory": "0.30MB"
     }
 ]

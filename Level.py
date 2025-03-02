@@ -11,6 +11,7 @@ class Level:
         ### Parameters
         @levelNumber: The level number to be loaded.
         """
+        self.level_number = levelNumber
         self.matrix = []
         self.matrixSize = [0, 0]
         self.playerPosition = []

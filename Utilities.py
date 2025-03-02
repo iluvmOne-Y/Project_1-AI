@@ -35,6 +35,15 @@ def solveLevel(level: Level.Level, algorithm, UI):
     solution = algorithm(level, UI)
     # If a solution is found, move the player according to the solution
     if solution:
+        if algorithm.__name__ == "ACO":
+            # Store level number before resetting
+            level_num = level.level_number
+            # Create a fresh level instance with the same level number
+            level = Level.Level(level_num)
+            # Redraw to show fresh state
+            UI.drawLevel(level.getMatrix())
+            pygame.time.wait(200)  # Brief pause before animation
+        
         moves = {
             "L": (-1, 0),
             "R": (1, 0),
@@ -44,16 +53,6 @@ def solveLevel(level: Level.Level, algorithm, UI):
         for direction in solution:
 
             stop_function()
-            # PAUSE ANIMATION WHEN ENTER SPACEBAR
-            # for event in pygame.event.get():
-            #     if event.type == pygame.KEYDOWN:
-            #         if event.key == pygame.K_SPACE:
-            #             stop_animation = True
-            # while stop_animation:
-            #     for event in pygame.event.get():
-            #         if event.type == pygame.KEYDOWN:
-            #             if event.key == pygame.K_SPACE:
-            #                 stop_animation = False
 
             movePlayer(level, moves[direction], True)
             UI.drawLevel(level.getMatrix())

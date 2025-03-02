@@ -624,8 +624,8 @@ def ACO(level, ui=None):
     @list: The path to solve the level, or None if no solution is found.
     """
     # Parameters for ACO
-    n_ants = 200                # Number of ants per iteration
-    n_iterations = 300          # Number of iterations
+    n_ants = 20                # Number of ants per iteration
+    n_iterations = 30          # Number of iterations
     evaporation_rate = 0.5     # Rate of pheromone evaporation
     alpha = 1.0                # Pheromone importance
     beta = 2.0                 # Heuristic importance
@@ -719,7 +719,7 @@ def ACO(level, ui=None):
             visited = {str(current_matrix)}
             
             # Build solution
-            max_steps = 3000  # Prevent infinite loops
+            max_steps = 300  # Prevent infinite loops
             step = 0
             
             while step < max_steps:
