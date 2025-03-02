@@ -38,4 +38,4 @@ class Solution:
 
     def __str__(self) -> str:
         """Return the string representation of the solution."""
-        return f"Steps: {self.steps}, Weight: {self.weight}, Node: {self.nodesExpanded}, Time (ms): {self.timeTaken}, Memory (MB): {self.memoryUsage}\n{self.path}"
+        return f"Steps: {self.steps}, Weight: {self.weight}, Node: {self.nodesExpanded}, Time (ms): {self.timeTaken:.2f}, Memory (MB): {self.memoryUsage:.2f}\n{self.path}"
