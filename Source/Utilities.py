@@ -129,39 +129,46 @@ def IsDeadlock(matrix: list, boxes: list, boxPosition: tuple, move: tuple) -> bo
     return False
 
 
-def CalculateHeuristicValue(boxes: dict, switches: list) -> int:
+def CalculateHeuristicValue(playerPosition: tuple, boxes: dict, switches: list) -> int:
     """Calculate the heuristic cost based on the sum of Manhattan distances between boxes with their nearest switch.
 
     ### Parameters
+    - playerPosition: The position of the player.
     - boxes: The positions of the boxes and their weights.
     - switches: The positions of the switches.
 
     ### Returns
     - int: The heuristic cost.
     """
+    heuristicDistances: dict = {}
+    boxWithMinDistance = None
+
     heuristicValue = 0
 
     # Loop through all boxes
     for box in boxes:
-        distance = 0
-
-        # Check if the box is on a switch
-        if box in switches:
-            distance = 0
-        # Get the distance of the box to the nearest switch
-        else:
-            distance = (
-                min(
-                    abs(box[0] - switch[0]) + abs(box[1] - switch[1])
-                    for switch in switches
-                )
-                * boxes[box]
+        # Calculate the Mahattan distance of the box to the nearest switch
+        mahattanDistance = (
+            min(
+                abs(box[0] - switch[0]) + abs(box[1] - switch[1]) for switch in switches
             )
+            * boxes[box]
+        )
+        heuristicDistances.update({box: mahattanDistance})
+        heuristicValue += mahattanDistance
 
-        # Update the heuristic value
-        heuristicValue += distance
+        # Update the box with the minimum distance
+        if (
+            not boxWithMinDistance
+            or heuristicDistances[boxWithMinDistance] > mahattanDistance
+        ):
+            boxWithMinDistance = box
 
-    return heuristicValue
+    return (
+        heuristicValue
+        + abs(boxWithMinDistance[0] - playerPosition[0])
+        + abs(boxWithMinDistance[1] - playerPosition[1])
+    )
 
 
 def GetMemoryUsage():
