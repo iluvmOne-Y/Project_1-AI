@@ -64,7 +64,7 @@ levels: list = [_TYPES.Level(i) for i in range(1, inputNumber + 1)]
 
 # Set the screen size
 screenSize = (
-    max(max(level.matrixSize[0] for level in levels) * imageSize + 250, screenSize[0]),
+    max(max(level.matrixSize[0] for level in levels) * imageSize + 300, screenSize[0]),
     max(max(level.matrixSize[1] for level in levels) * imageSize + 400, screenSize[1]),
 )
 
@@ -405,7 +405,7 @@ def DrawStats(stats: _TYPES.StateStats):
         pathOffsetY = statsAreaOffsetY + statsAreaHeight * 0.25
 
         # Add ellipsis if path is longer than what we can show
-        maxCharPerLine = min(40, int(statsAreaWidth / 10))
+        maxCharPerLine = max(20, int(statsAreaWidth / 15))
         pathDisplay = stats.path
 
         if len(stats.path) > maxCharPerLine:
