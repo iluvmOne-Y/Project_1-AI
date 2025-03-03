@@ -2,7 +2,7 @@ import _TYPES as _TYPES
 
 # Intergrated modules
 import time as time
-from heapq import heappush
+from heapq import heappush, heappop
 
 # Custom modules
 from Controller.InterfaceController import DrawStats
@@ -19,9 +19,9 @@ def UCS(level: _TYPES.Level) -> _TYPES.Solution:
     - _TYPES.Solution: The solution to the level.
     """
     # Initialize mesurments
-    totalNodes = 0
-    startTime = time.time()
     startMemory = GetMemoryUsage()
+    startTime = time.time()
+    totalNodes = 0
     peakMemory = 0
 
     # Get the moves and directions
@@ -45,23 +45,22 @@ def UCS(level: _TYPES.Level) -> _TYPES.Solution:
             if IsDeadlock(matrix, boxes, box, moves[direction]):
                 return None
 
-    exploredStates = set()
-    frontier = (
-        []
-    )  # A priority queue of the states to explore ordered by their traversal cost
-
     # Initialize the frontier
-    # Format: (pathCost, path, playerPostion, boxes)
-    heappush(
-        frontier,
-        (0, "", playerPosition, boxes),
-    )
+    exploredStates = set()
+    frontierDict = {
+        (playerPosition, tuple(boxes.keys())): [0]
+    }  # A dict for constant-time traversal cost lookup
+    # Format: ([pathCost], path, playerPostion, boxes)
+    frontier = [
+        (frontierDict[(playerPosition, tuple(boxes.keys()))], "", playerPosition, boxes)
+    ]  # A priority queue of the states to explore ordered by their traversal cost
 
     while frontier:
         # Get the current state
-        currentPathCost, currentPath, currentPlayerPosition, currentBoxes = (
-            frontier.pop(0)
+        currentPathCost, currentPath, currentPlayerPosition, currentBoxes = heappop(
+            frontier
         )
+        frontierDict.pop((currentPlayerPosition, tuple(currentBoxes.keys())))
 
         # Increment the total number of nodes
         totalNodes += 1
@@ -83,7 +82,7 @@ def UCS(level: _TYPES.Level) -> _TYPES.Solution:
         if all(switchPostion in currentBoxes for switchPostion in switches):
             return _TYPES.Solution(
                 len(currentPath),
-                currentPathCost - len(currentPath),
+                currentPathCost[0] - len(currentPath),
                 totalNodes,
                 time.time() - startTime,
                 max(peakMemory, GetMemoryUsage() - startMemory),
@@ -101,38 +100,35 @@ def UCS(level: _TYPES.Level) -> _TYPES.Solution:
                 level, currentPlayerPosition, currentBoxes, move, True
             )
 
-            # Return if the player can't move in the given direction
+            # Skip if the player can't move in the given direction
             if moveCost == 0:
                 continue
 
-            # Get the correct move type (lowercase for ordinary move, uppercase for box pushing action)
-            moveType = direction if moveCost == 1 else direction.upper()
-
-            # Check if the new state has already been explored
-            explored = False
-            if (newPlayerPosition, tuple(newBoxes.keys())) in exploredStates:
-                explored = True
-
-            # Loop through the frontier and find any states that match the new state
-            for i, state in enumerate(frontier):
-                # Skip if the state is not the same as the new state
-                if state[2] != newPlayerPosition or state[3] != newBoxes:
-                    continue
-
-                # Update the frontier if the new state has a lower path cost
-                if not explored and currentPathCost + moveCost < state[0]:
-                    # Remove the old state from the frontier
-                    frontier.pop(i)
-
-            # Skip if the new state has already been explored
-            if explored:
+            # ALso skip if the state is already explored
+            newState = (newPlayerPosition, tuple(newBoxes.keys()))
+            if newState in exploredStates:
                 continue
 
-            # Add the new state to the frontier
+            # Update new path cost and get the correct move type
+            # (lowercase for ordinary move, uppercase for box pushing action)
+            newPathCost = currentPathCost[0] + moveCost
+            moveType = direction if moveCost == 1 else direction.upper()
+
+            # Check for new state in the frontier dict
+            if newState in frontierDict:
+                # Replace the path cost if the new path cost is lower
+                # Update this will also update the path cost of the same state in the frontier (built-in list acts as a reference)
+                if frontierDict[newState][0] > newPathCost:
+                    frontierDict[newState][0] = newPathCost
+
+                continue
+
+            # Add the new state to the frontier and also update the frontier dict
+            frontierDict.update({newState: [newPathCost]})
             heappush(
                 frontier,
                 (
-                    currentPathCost + moveCost,
+                    frontierDict[newState],
                     currentPath + moveType,
                     newPlayerPosition,
                     newBoxes,

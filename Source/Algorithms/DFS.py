@@ -18,9 +18,9 @@ def DFS(level: _TYPES.Level) -> _TYPES.Solution:
     - _TYPES.Solution: The solution to the level.
     """
     # Initialize mesurments
-    totalNodes = 0
-    startTime = time.time()
     startMemory = GetMemoryUsage()
+    startTime = time.time()
+    totalNodes = 0
     peakMemory = 0
 
     # Get the moves and directions
@@ -49,6 +49,9 @@ def DFS(level: _TYPES.Level) -> _TYPES.Solution:
     frontier = [
         (playerPosition, boxes, "", 0),
     ]  # A stack of the states to explore
+    frontierSet = {
+        (playerPosition, tuple(boxes.keys()))
+    }  # Set for constant-time membership checking
 
     # Iterate through the frontier
     while frontier:
@@ -56,6 +59,7 @@ def DFS(level: _TYPES.Level) -> _TYPES.Solution:
         currentPlayerPosition, currentBoxes, currentPath, currentPathCost = (
             frontier.pop()
         )
+        frontierSet.remove((currentPlayerPosition, tuple(currentBoxes.keys())))
 
         # Increment the total number of nodes
         totalNodes += 1
@@ -99,22 +103,13 @@ def DFS(level: _TYPES.Level) -> _TYPES.Solution:
             if moveCost == 0:
                 continue
 
-            # Skip if the new state has already been explored
-            if (newPlayerPosition, tuple(newBoxes.keys())) in exploredStates:
+            # Skip if the new state has already been explored or is in the frontier
+            newState = (newPlayerPosition, tuple(newBoxes.keys()))
+            if newState in exploredStates or newState in frontierSet:
                 continue
 
-            # Check if the new state is in the frontier
-            isInFrontier = False
-            for state in frontier:
-                if state[0] == newPlayerPosition and state[1] == newBoxes:
-                    isInFrontier = True
-                    break
-
-            # Also skip if the new state is in the frontier
-            if isInFrontier:
-                continue
-
-            # Get the correct move type (lowercase for ordinary move, uppercase for box pushing action)
+            # Get the correct move type
+            # (lowercase for ordinary move, uppercase for box pushing action)
             moveType = direction if moveCost == 1 else direction.upper()
 
             # Append this new state to the end of the frontier
@@ -126,6 +121,8 @@ def DFS(level: _TYPES.Level) -> _TYPES.Solution:
                     currentPathCost + moveCost,
                 )
             )
+            # Add the new state to the frontier set
+            frontierSet.add(newState)
 
     # Return None if no solution is found
     return None

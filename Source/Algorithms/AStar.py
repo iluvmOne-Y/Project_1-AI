@@ -2,7 +2,7 @@ import _TYPES as _TYPES
 
 # Intergrated modules
 import time as time
-from heapq import heappush
+from heapq import heappush, heappop
 
 # Custom modules
 from Controller.InterfaceController import DrawStats
@@ -19,9 +19,9 @@ def AStar(level: _TYPES.Level) -> _TYPES.Solution:
     - _TYPES.Solution: The solution to the level.
     """
     # Initialize mesurments
-    totalNodes = 0
-    startTime = time.time()
     startMemory = GetMemoryUsage()
+    startTime = time.time()
+    totalNodes = 0
     peakMemory = 0
 
     # Get the moves and directions
@@ -45,21 +45,28 @@ def AStar(level: _TYPES.Level) -> _TYPES.Solution:
             if IsDeadlock(matrix, boxes, box, moves[direction]):
                 return None
 
-    exploredStates = set()
-    frontier = []  # A priority queue of states to explore orderd by their weight
-
     # Initialize the frontier
-    # Format: (weight, pathCost, path, playerPostion, boxes)
-    heappush(
-        frontier,
-        (0, 0, "", playerPosition, boxes),
-    )
+    exploredStates = set()
+    frontierDict = {
+        (playerPosition, tuple(boxes.keys())): [0, 0]
+    }  # A dict for constant-time traversal weight and cost lookup
+    # Format: ([weight, pathCost], path, playerPostion, boxes)
+    frontier = [
+        (
+            frontierDict[(playerPosition, tuple(boxes.keys()))],
+            "",
+            playerPosition,
+            boxes,
+        )
+    ]  # A priority queue of states to explore orderd by their weight
 
     while frontier:
         # Get the current state
-        _, currentPathCost, currentPath, currentPlayerPosition, currentBoxes = (
-            frontier.pop(0)
+        currentWeight, currentPath, currentPlayerPosition, currentBoxes = heappop(
+            frontier
         )
+        currentPathCost = currentWeight[1]
+        frontierDict.pop((currentPlayerPosition, tuple(currentBoxes.keys())))
 
         # Increment the total number of nodes
         totalNodes += 1
@@ -105,43 +112,39 @@ def AStar(level: _TYPES.Level) -> _TYPES.Solution:
             if moveCost == 0:
                 continue
 
-            # Get the correct move type (lowercase for ordinary move, uppercase for box pushing action)
-            moveType = direction if moveCost == 1 else direction.upper()
-
-            # Check if the new state has already been explored
-            explored = False
-            if (newPlayerPosition, tuple(newBoxes.keys())) in exploredStates:
-                explored = True
-
-            # Calculate the weight of the new state
-            # by adding heuristic value to the true travel cost and the current path cost
-            weight = (
-                currentPathCost
-                + moveCost
-                + CalculateHeuristicValue(newPlayerPosition, newBoxes, switches)
-            )
-
-            # Loop through the frontier and find any states that match the new state
-            for i, state in enumerate(frontier):
-                # Skip if the state is not the same as the new state
-                if state[3] != newPlayerPosition or state[4] != newBoxes:
-                    continue
-
-                # Update the frontier if the new state has a lower weight
-                if not explored and weight < state[0]:
-                    # Remove the old state and path from the frontier
-                    frontier.pop(i)
-
-            # Skip if the new state has already been explored
-            if explored:
+            # Also skip if the new state has already been explored
+            newState = (newPlayerPosition, tuple(newBoxes.keys()))
+            if newState in exploredStates:
                 continue
 
-            # Add the new state and path to the frontier
+            # Update new path cost and get the correct move type
+            # (lowercase for ordinary move, uppercase for box pushing action)
+            newPathCost = currentPathCost + moveCost
+            moveType = direction if moveCost == 1 else direction.upper()
+
+            # Calculate the weight of the new state
+            newWeight = [
+                newPathCost
+                + CalculateHeuristicValue(newPlayerPosition, newBoxes, switches),
+                newPathCost,
+            ]
+
+            # Check for new state in the frontier dict
+            if newState in frontierDict:
+                # Replace the weight if the new weight is lower
+                # Update this will also update the weight of the same state in the frontier (built-in list acts as a reference)
+                if frontierDict[newState] > newWeight:
+                    frontierDict[newState][0] = newWeight[0]
+                    frontierDict[newState][1] = newWeight[1]
+
+                continue
+
+            # Add the new state to the frontier and also update the frontier dict
+            frontierDict.update({newState: newWeight})
             heappush(
                 frontier,
                 (
-                    weight,
-                    currentPathCost + moveCost,
+                    frontierDict[newState],
                     currentPath + moveType,
                     newPlayerPosition,
                     newBoxes,

@@ -3,7 +3,7 @@ import _TYPES as _TYPES
 # Intergrated modules
 import time as time
 from itertools import count
-from heapq import heappush
+from heapq import heappush, heappop
 
 # Custom modules
 from Controller.InterfaceController import DrawStats
@@ -20,9 +20,9 @@ def Dijkstra(level: _TYPES.Level) -> _TYPES.Solution:
     - _TYPES.Solution: The solution to the level.
     """
     # Initialize mesurments
-    totalNodes = 0
-    startTime = time.time()
     startMemory = GetMemoryUsage()
+    startTime = time.time()
+    totalNodes = 0
     peakMemory = 0
 
     # Get the moves and directions
@@ -46,20 +46,24 @@ def Dijkstra(level: _TYPES.Level) -> _TYPES.Solution:
             if IsDeadlock(matrix, boxes, box, moves[direction]):
                 return None
 
+    # Initialize the frontier
     exploredStates = set()
-    frontier = (
-        []
-    )  # A priority queue of states to explore orderd by their traversal cost
-
     counter = count()  # Unique sequence to break ties consistently
-    # Format: (cost, counter, path, playerPostion, boxes)
-    heappush(frontier, (0, next(counter), "", playerPosition, boxes))
+    frontierDict = {
+        (playerPosition, tuple(boxes.keys())): [0, next(counter)]
+    }  # A dict for constant-time traversal cost lookup
+    # Format: ([pathCost, counter], path, playerPostion, boxes)
+    frontier = [
+        (frontierDict[(playerPosition, tuple(boxes.keys()))], "", playerPosition, boxes)
+    ]  # A priority queue of states to explore orderd by their traversal cost
 
     while frontier:
         # Get the state with the lowest cost
-        currentPathCost, _, currentPath, currentPlayerPosition, currentBoxes = (
-            frontier.pop(0)
+        currentWeight, currentPath, currentPlayerPosition, currentBoxes = heappop(
+            frontier
         )
+        currentPathCost = currentWeight[0]
+        frontierDict.pop((currentPlayerPosition, tuple(currentBoxes.keys())))
 
         # Increment the total number of nodes
         totalNodes += 1
@@ -88,10 +92,6 @@ def Dijkstra(level: _TYPES.Level) -> _TYPES.Solution:
                 currentPath,
             )
 
-        # Skip if current state is already explored
-        if (currentPlayerPosition, tuple(currentBoxes.keys())) in exploredStates:
-            continue
-
         # Add the current state to the explored set
         exploredStates.add((currentPlayerPosition, tuple(currentBoxes.keys())))
 
@@ -107,15 +107,35 @@ def Dijkstra(level: _TYPES.Level) -> _TYPES.Solution:
             if moveCost == 0:
                 continue
 
-            # Get the correct move type (lowercase for ordinary move, uppercase for box pushing action)
-            moveType = direction if moveCost == 1 else direction.upper()
+            # ALso skip if the state is already explored
+            newState = (newPlayerPosition, tuple(newBoxes.keys()))
+            if newState in exploredStates:
+                continue
 
-            # Add to frontier
+            # Update new path cost and get the correct move type
+            # (lowercase for ordinary move, uppercase for box pushing action)
+            moveType = direction if moveCost == 1 else direction.upper()
+            newPathCost = currentPathCost + moveCost
+
+            # Calculate the weight of the new state
+            newWeight = [newPathCost, next(counter)]
+
+            # Check for new state in the frontier dict
+            if newState in frontierDict:
+                # Replace the path cost if the new weight is lower
+                # Update this will also update the weight of the same state in the frontier (built-in list acts as a reference)
+                if frontierDict[newState] > newWeight:
+                    frontierDict[newState][0] = newPathCost
+                    frontierDict[newState][1] = newWeight[1]
+
+                continue
+
+            # Add the new state to the frontier and also update the frontier dict
+            frontierDict.update({newState: newWeight})
             heappush(
                 frontier,
                 (
-                    currentPathCost + moveCost,
-                    next(counter),
+                    frontierDict[newState],
                     currentPath + moveType,
                     newPlayerPosition,
                     newBoxes,

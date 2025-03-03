@@ -2,7 +2,7 @@ import _TYPES as _TYPES
 
 # Integrated modules
 import time as time
-from heapq import heappush
+from heapq import heappush, heappop
 
 # Custom modules
 from Controller.InterfaceController import DrawStats
@@ -45,20 +45,28 @@ def GreedyBFS(level: _TYPES.Level) -> _TYPES.Solution:
             if IsDeadlock(matrix, boxes, box, moves[direction]):
                 return None
 
-    exploredStates = set()
-    frontier = (
-        []
-    )  # A priority queue of states to explore ordered by their heuristic cost
-
     # Initialize the frontier
-    # Format: (heuristicCost, pathCost, path, playerPosition, boxes)
-    heappush(frontier, (0, 0, "", playerPosition, boxes))
+    exploredStates = set()
+    frontierDict = {
+        (playerPosition, tuple(boxes.keys())): [0, 0]
+    }  # A dict for constant-time traversal weight and cost lookup
+    # Format: ([heuristicCost, pathCost], path, playerPostion, boxes)
+    frontier = [
+        (
+            frontierDict[(playerPosition, tuple(boxes.keys()))],
+            "",
+            playerPosition,
+            boxes,
+        )
+    ]  # A priority queue of states to explore orderd by their weight
 
     while frontier:
-        # Get the state with the lowest heuristic value
-        _, currentPathCost, currentPath, currentPlayerPosition, currentBoxes = (
-            frontier.pop(0)
+        # Get the current state
+        currentWeight, currentPath, currentPlayerPosition, currentBoxes = heappop(
+            frontier
         )
+        currentPathCost = currentWeight[1]
+        frontierDict.pop((currentPlayerPosition, tuple(currentBoxes.keys())))
 
         # Increment the total number of nodes
         totalNodes += 1
@@ -87,10 +95,6 @@ def GreedyBFS(level: _TYPES.Level) -> _TYPES.Solution:
                 currentPath,
             )
 
-        # Skip if the state is already explored
-        if (currentPlayerPosition, tuple(currentBoxes.keys())) in exploredStates:
-            continue
-
         # Add the current state to the explored set
         exploredStates.add((currentPlayerPosition, tuple(currentBoxes.keys())))
 
@@ -107,18 +111,36 @@ def GreedyBFS(level: _TYPES.Level) -> _TYPES.Solution:
                 continue
 
             # Skip if the new state is already explored
-            if (newPlayerPosition, tuple(newBoxes.keys())) in exploredStates:
+            newState = (newPlayerPosition, tuple(newBoxes.keys()))
+            if newState in exploredStates:
                 continue
 
             # Get the correct move type (lowercase for ordinary move, uppercase for box pushing action)
             moveType = direction if moveCost == 1 else direction.upper()
+            newPathCost = currentPathCost + moveCost
 
-            # Add to frontier
+            # Calculate the weight of the new state
+            newWeight = [
+                CalculateHeuristicValue(newPlayerPosition, newBoxes, switches),
+                newPathCost,
+            ]
+
+            # Check for new state in the frontier dict
+            if newState in frontierDict:
+                # Replace the weight if the new weight is lower
+                # Update this will also update the weight of the same state in the frontier (built-in list acts as a reference)
+                if frontierDict[newState] > newWeight:
+                    frontierDict[newState][0] = newWeight[0]
+                    frontierDict[newState][1] = newWeight[1]
+
+                continue
+
+            # Add the new state to the frontier and also update the frontier dict
+            frontierDict.update({newState: newWeight})
             heappush(
                 frontier,
                 (
-                    CalculateHeuristicValue(newPlayerPosition, newBoxes, switches),
-                    currentPathCost + moveCost,
+                    frontierDict[newState],
                     currentPath + moveType,
                     newPlayerPosition,
                     newBoxes,
