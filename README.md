@@ -103,7 +103,19 @@ python main.py
 │   │   ├── Assets/             # Graphics and fonts
 │   │   └── Types/              # Data structure definitions
 │   ├── Inputs/                 # Puzzle level definitions
+│   │   ├── level1.txt          # First line: box weights (e.g., "1 2 3 1")
+│   │   ├── level2.txt          # Remaining lines: Level layout using symbols
+│   │   └── ...                 # (@:player, #:wall, $:box, .:target, etc.)
+│   │
 │   ├── outputs/                # Solution outputs and statistics
+│   │   ├── output-1.txt        # Solution data for level 1
+│   │   │                       # Format: [algorithm name, stats, solution path]
+│   │   ├── output-2.txt        # Solution data for level 2
+│   │   ├── ...
+│   │   ├── stats.py            # Script for generating performance reports
+│   │   ├── results/            # Generated PDF reports
+│   │   └── temp_charts/        # Temporary visualization charts
+│   │
 │   ├── _TYPES.py               # Type definitions
 │   ├── main.py                 # Main entry point
 │   ├── requirements.txt        # Python dependencies
