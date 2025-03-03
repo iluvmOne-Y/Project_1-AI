@@ -149,13 +149,13 @@ def DrawSelectionScreen(level: _TYPES.Level, algorithmName: str):
     screenSurface.fill((0, 0, 0))
     # Draw background
     background = pygame.image.load(
-        os.path.join("Data/Assets/Images/Background/background2.png")
+        os.path.join("Data/Assets/Images/Background/background.png")
     )
     screenSurface.blit(background, (0, 0))
 
     # Try to load and draw background
     try:
-        background = pygame.image.load("Data/Assets/Images/Background/background2.png")
+        background = pygame.image.load("Data/Assets/Images/Background/background.png")
         screenSurface.blit(background, (0, 0))
     except (pygame.error, FileNotFoundError):
         # If background image is missing, draw a gradient or pattern

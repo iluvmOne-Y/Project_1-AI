@@ -259,9 +259,7 @@ def SolveLevel(
                 pygame.time.wait(200)
 
 
-def SaveSolutionToFile(
-    level: _TYPES.Level, algorithmName: str, solution: _TYPES.Solution
-):
+def SaveSolutionToFile(level: _TYPES.Level, algorithmName: str, solution: _TYPES.Solution):
     """Save the solution statistics to an output file according to the specified format.
 
     Format:
@@ -278,31 +276,66 @@ def SaveSolutionToFile(
     formatted_level = f"{level.number:02d}"  # 01, 02, etc.
 
     # Generate filename based on required format
-    filename = f"Outputs/output-{formatted_level}.txt"
+    filename = f"outputs/output-{formatted_level}.txt"
 
-    # Check if file exists - if so, we'll append to it rather than overwrite
+    # Ensure outputs directory exists
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+
+    # Check if file exists - if so, we'll read it and maybe modify it
     file_exists = os.path.exists(filename)
 
-    # Open file in append mode if it exists, otherwise create new
-    with open(filename, "a" if file_exists else "w") as f:
-        # If this is a new file, no newline needed
-        # If we're appending, add a newline before the algorithm name
-        if file_exists:
-            f.write("\n")
+    if file_exists:
+        # Read existing file content
+        with open(filename, "r") as f:
+            lines = f.readlines()
 
-        # Line 1: Algorithm name
-        f.write(f"{algorithmName}\n")
+        # Process existing content to find algorithm entries
+        new_content = []
+        i = 0
+        algorithm_found = False
 
-        # Line 2: Statistics (convert time to milliseconds)
-        time_ms = solution.timeTaken * 1000  # Convert seconds to milliseconds
-        f.write(f"Steps: {solution.steps}, Weight: {solution.weight}, ")
-        f.write(f"Node: {solution.nodesExpanded}, Time (ms): {time_ms:.2f}, ")
-        f.write(f"Memory (MB): {solution.memoryUsage:.2f}\n")
+        while i < len(lines):
+            # Check if this is the start of our algorithm's data
+            if lines[i].strip() == algorithmName:
+                # Skip this algorithm's 3 lines (name, stats, path)
+                algorithm_found = True
+                i += 3
+            else:
+                # Keep this line
+                new_content.append(lines[i])
+                i += 1
 
-        # Line 3: Solution path as a string
-        f.write(f"{''.join(solution.path)}")
+        # Format the new algorithm content
+        time_ms = solution.timeTaken * 1000
+        alg_content = [
+            f"{algorithmName}\n",
+            f"Steps: {solution.steps}, Weight: {solution.weight}, Node: {solution.nodesExpanded}, Time (ms): {time_ms:.2f}, Memory (MB): {solution.memoryUsage:.2f}\n",
+            f"{''.join(solution.path)}\n"
+        ]
+
+        # Append our algorithm's content at the end
+        if new_content and new_content[-1].strip():  # If last line isn't empty
+            new_content.append("\n")  # Add separator line
+        new_content.extend(alg_content)
+
+        # Write updated content back to file
+        with open(filename, "w") as f:
+            f.writelines(new_content)
+    else:
+        # File doesn't exist, create new
+        with open(filename, "w") as f:
+            # Line 1: Algorithm name
+            f.write(f"{algorithmName}\n")
+
+            # Line 2: Statistics (convert time to milliseconds)
+            time_ms = solution.timeTaken * 1000
+            f.write(f"Steps: {solution.steps}, Weight: {solution.weight}, ")
+            f.write(f"Node: {solution.nodesExpanded}, Time (ms): {time_ms:.2f}, ")
+            f.write(f"Memory (MB): {solution.memoryUsage:.2f}\n")
+
+            # Line 3: Solution path as a string
+            f.write(f"{''.join(solution.path)}")
 
     print(f"Solution saved to {filename}")
-
 
 __all__ = ["InitLevel"]

@@ -14,9 +14,9 @@ from Algorithms.UCS import UCS
 from Algorithms.AStar import AStar
 from Algorithms.Dijkstra import Dijkstra
 from Algorithms.GreedyBFS import GreedyBFS
-
+from Algorithms.Swarm import SwarmAlgorithm
 # Get the algorithms
-algorithms: list = [BFS, DFS, UCS, AStar, Dijkstra, GreedyBFS]
+algorithms: list = [BFS, DFS, UCS, AStar, Dijkstra, GreedyBFS,SwarmAlgorithm]
 
 while True:
     level, algorithm = InterfaceController.DrawSelectionMenu(algorithms)

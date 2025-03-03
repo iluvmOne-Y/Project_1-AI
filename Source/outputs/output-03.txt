@@ -1,0 +1,3 @@
+SwarmAlgorithm
+Steps: 61, Weight: 46, Node: 1679, Time (ms): 30.97, Memory (MB): 6.69
+lulluRRRlluurrDrDLLruulldDldRurDDrrUruLLLruulldDrdLrdrrddllUU
