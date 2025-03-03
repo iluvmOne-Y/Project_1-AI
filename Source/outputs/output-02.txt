@@ -1,3 +1,27 @@
+BFS
+Steps: 70, Weight: 66, Node: 405, Time (ms): 0.90, Memory (MB): 0.00
+uuuruRlldddrrruuruulDDDuullldddrrdrruLLLrruuulllddDlddrUUUdrrruuulllldR
+
+DFS
+Steps: 71, Weight: 72, Node: 304, Time (ms): 0.66, Memory (MB): 0.00
+uuuurRldlddrrruuruulDDDuulldlddrrdrruLLLrruuulldldDlddrUUUdrrruuulllldR
+
+UCS
+Steps: 71, Weight: 72, Node: 406, Time (ms): 1.05, Memory (MB): 0.00
+uuuruRldlddrrruuruulDDDuulldlddrrdrruLLLrruuulldldDlddrUUUdrrruuulllldR
+
+AStar
+Steps: 71, Weight: 72, Node: 405, Time (ms): 1.36, Memory (MB): 0.00
+uuuruRldlddrrruuruulDDDuulldlddrrdrruLLLrruuulldldDlddrUUUdrrruuulllldR
+
+Dijkstra
+Steps: 71, Weight: 72, Node: 406, Time (ms): 1.06, Memory (MB): 0.00
+uuuruRlldddrrruuruulDDDuullldddrrdrruLLLrruuulllddDlddrUUUdrrruuulllldR
+
+GreedyBFS
+Steps: 71, Weight: 72, Node: 305, Time (ms): 1.19, Memory (MB): 0.00
+uuuruRldlddrrruuruulDDDuulldlddrrdrruLLLrruuulldldDlddrUUUdrrruuulllldR
+
 SwarmAlgorithm
-Steps: 71, Weight: 72, Node: 406, Time (ms): 19.20, Memory (MB): 3.84
+Steps: 71, Weight: 72, Node: 406, Time (ms): 18.63, Memory (MB): 3.05
 uuuruRldlddrrruuruulDDDuulldlddrrdrruLLLrruuulldldDlddrUUUdrrruuulllldR

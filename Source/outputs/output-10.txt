@@ -1,0 +1,22 @@
+BFS
+Steps: 58, Weight: 619, Node: 1907416, Time (ms): 32538.39, Memory (MB): 723.52
+luLdldLrurrdLrurruLrddLrurruLrddLrurruLrddLrRuruLrdrruLddLL
+DFS
+Steps: 307, Weight: 2409, Node: 1899680, Time (ms): 10650.45, Memory (MB): 12.06
+rrrrrdRullldRullldRullldRuluLdrrruLdrrdLurruLdrrdLurruLdrrdLurruLdrrdLurruLdllldRullldRurruRdlllllldRurruRdrruLdrrruLdllllllllldRurrrrrruRdllluRdllldLulldRullldRurrrruRdrruLdrrruLdrrruLdlllllllllldlLurrrrdLurrrdLurrrdLurrrdLuruRdrdLurruLdllllllllldLurrrdLurrrdLurrrdRuuRdrdLulldRluluRddLurrruLdrrdLurruLddlL
+
+UCS
+Steps: 59, Weight: 613, Node: 1912293, Time (ms): 19234.71, Memory (MB): 49.59
+luLdldLrurrdLrurrdLruuLdrrrdLruuLdrrrdLruuLdrrrdLruuLdrrruL
+
+AStar
+Steps: 59, Weight: 613, Node: 1885153, Time (ms): 61189.24, Memory (MB): 48.39
+luLdldLrurrdLurrrdLuruLdrrrdLuruLdrrrdLuruLdrrrdLuruLdrrruL
+
+Dijkstra
+Steps: 59, Weight: 613, Node: 1912295, Time (ms): 18754.32, Memory (MB): 44.08
+luLdldLrurrdLrurrdLruuLrdrruLrddLrurruLrddLrurrdLruuLrdrruL
+
+GreedyBFS
+Steps: 59, Weight: 613, Node: 1905343, Time (ms): 47781.84, Memory (MB): 2.88
+luLdldLrurrdLurrruLdrdLurrruLdrdLurrruLdrdLurrruLdrdLurrruL

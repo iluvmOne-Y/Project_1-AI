@@ -256,7 +256,7 @@ def SolveLevel(
                 paused = True
             else:
                 InterfaceController.DrawMatrix(solutionStates[index], level.matrixSize)
-                pygame.time.wait(200)
+                pygame.time.wait(100)
 
 
 def SaveSolutionToFile(level: _TYPES.Level, algorithmName: str, solution: _TYPES.Solution):
